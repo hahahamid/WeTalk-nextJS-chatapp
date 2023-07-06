@@ -9,7 +9,7 @@ import { MdDeleteForever } from "react-icons/md";
 
 import EmojiPicker from "emoji-picker-react";
 import ClickAwayListener from "react-click-away-listener";
-import Composebar from "./Composebar";
+import ComposeBar from "./ComposeBar";
 
 const ChatFooter = () => {
   const [showImojiPicker, setShowImojiPicker] = useState(false);
@@ -120,7 +120,7 @@ const ChatFooter = () => {
         </div>
       )}
 
-      <Composebar />
+      <ComposeBar />
     </div>
   );
 };
