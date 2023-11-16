@@ -15,6 +15,7 @@ export const ChatContextProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [users, setUsers] = useState(true);
+  const [isRead, setIsRead] = useState(false);
   const [inputText, setInputText] = useState("");
   const [attachment, setAttachment] = useState(null);
   const [attachmentPreview, setAttachmentPreview] = useState(null);
@@ -73,6 +74,8 @@ export const ChatContextProvider = ({ children }) => {
         dispatch,
         editMsg,
         setEditMsg,
+        isRead, 
+        setIsRead,
         isTyping,
         setIsTyping,
         resetFooterStates,

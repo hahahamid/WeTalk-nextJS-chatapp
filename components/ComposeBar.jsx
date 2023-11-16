@@ -1,6 +1,7 @@
 import { useChatContext } from "@/context/chatContext";
 import { useAuth } from "@/context/authContext";
 import { db, storage } from "@/firebase/firebase";
+import ToastMessage from "@/components/ToastMessage";
 
 import { v4 as uuid } from "uuid";
 import {
@@ -15,6 +16,8 @@ import {
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 
 import { TbSend } from "react-icons/tb";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 let typingTimeout = null;
 
@@ -30,6 +33,7 @@ const Composebar = () => {
     editMsg,
     setEditMsg,
   } = useChatContext();
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const handleSend = async () => {
     if (attachment) {
@@ -43,6 +47,17 @@ const Composebar = () => {
           // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+          if (progress === 100) {
+            toast.success("Uploaded successfully", {
+              autoClose: 3000, // Adjust as needed
+            });
+          } else {
+            toast.info("Uploading...", {
+              autoClose: 1000,
+            });
+          }
+
           console.log("Upload is " + progress + "% done");
           switch (snapshot.state) {
             case "paused":
@@ -144,7 +159,7 @@ const Composebar = () => {
                   if (message.id === messageID) {
                     message.text = inputText;
                     message.img = downloadURL;
-                    message.alt = downloadURL; 
+                    message.alt = downloadURL;
                   }
                   return message;
                 });
@@ -177,7 +192,7 @@ const Composebar = () => {
   };
 
   const onKeyUp = (event) => {
-    if (event.key === "Enter" && (inputText || attachment)) {
+    if (event.key === "Enter" && !event.shiftKey && (inputText || attachment)) {
       !editMsg ? handleSend() : handleEdit();
     }
   };
@@ -197,7 +212,7 @@ const Composebar = () => {
     // Set a new timeout for 1.5 seconds after the last keystroke
     typingTimeout = setTimeout(async () => {
       // Send a typing indicator to other users indicating that this user has stopped typing
-      console.log("User has stopped typing");
+      // console.log("User has stopped typing");
 
       await updateDoc(doc(db, "chats", data.chatId), {
         [`typing.${currentUser.uid}`]: false,
@@ -205,14 +220,15 @@ const Composebar = () => {
 
       // Reset the timeout
       typingTimeout = null;
-    }, 500);
+    }, 100);
   };
 
   return (
     <div className="flex items-center gap-2 grow">
+      <ToastMessage />
       <input
         type="text"
-        className="grow w-full outline-0 px-2 py-2 text-white bg-transparent placeholder:text-c3 outline-none text-base"
+        className="resize-none w-full h-10 outline-0 px-2 py-2 text-white bg-transparent placeholder:text-c3 outline-none text-base"
         placeholder="Type a message"
         value={inputText}
         onChange={handleTyping}
@@ -222,7 +238,7 @@ const Composebar = () => {
         onClick={!editMsg ? handleSend : handleEdit}
         className={`h-10 w-10 rounded-xl shrink-0 flex justify-center items-center ${
           inputText.trim().length > 0 ? "bg-c4" : ""
-        }`}
+        } ${attachment ? "bg-c4" : ""}`}
       >
         <TbSend size={20} className="text-white" />
       </button>

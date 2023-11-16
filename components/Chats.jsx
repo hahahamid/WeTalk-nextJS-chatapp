@@ -84,7 +84,6 @@ const Chats = () => {
       const unsub = onSnapshot(doc(db, "userChats", currentUser.uid), (doc) => {
         if (doc.exists()) {
           const data = doc.data();
-
           setChats(data);
 
           if (data.hasOwnProperty("isTyping")) delete data.isTyping;
@@ -138,7 +137,7 @@ const Chats = () => {
     const chatRef = doc(db, "chats", chatId);
     const chatDoc = await getDoc(chatRef);
     let updatedMessages = chatDoc.data()?.messages.map((m) => {
-      if (m?.read === false) {
+      if (m.read === false) {
         m.read = true;
       }
       return m;
@@ -157,7 +156,7 @@ const Chats = () => {
       readChat(selectedChatId);
     }
   };
-
+ 
   return (
     <div className="flex flex-col h-full">
       <div className="shrink-0 sticky -top-[20px] z-10 flex justify-center w-full bg-c2 py-5">
@@ -173,11 +172,11 @@ const Chats = () => {
       <ul className="flex flex-col w-full my-5 gap-[4px]">
         {Object.keys(users || {}).length > 0 &&
           filteredChats?.map((chat) => {
+            
             const timestamp = new Timestamp(
               chat[1].date?.seconds,
               chat[1].date?.nanoseconds
             );
-
             const date = timestamp.toDate();
             const user = users[chat[1].userInfo?.uid];
 
@@ -197,9 +196,18 @@ const Chats = () => {
                     <div className="text-xs text-c3">{formatDate(date)}</div>
                   </span>
                   <p className="text-sm text-c3 line-clamp-1">
-                    {chat[1]?.lastMessage?.text ||
-                      (chat[1]?.lastMessage?.img && "image") ||
-                      "bell the cat! send a text"}
+                    {/* {chat[1]?.lastMessage?.text ||
+                      (chat[1]?.lastMessage?.img + "image") ||
+                      "bell the cat! send a text"} */}
+
+                      {
+                        chat[1]?.lastMessage?.text
+                        ? chat[1]?.lastMessage?.text
+                        : chat[1]?.lastMessage?.img
+                          ? "image"
+                          : "bell the cat! send a text"
+                      
+                      }
                   </p>
 
                   {!!unreadMsgs?.[chat[0]]?.length && (

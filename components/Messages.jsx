@@ -42,7 +42,7 @@ const Messages = () => {
             !m?.deletedInfo?.deletedForEveryone &&
             !m?.deleteChatInfo?.[currentUser.uid]
         )
-        ?.map((m) => {
+        ?.map((m) => { 
           return <Message message={m} key={m.id} />;
         })}
     </div>
