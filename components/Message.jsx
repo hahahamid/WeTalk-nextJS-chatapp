@@ -15,13 +15,12 @@ import Image from "next/image";
 
 const Message = ({ message }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const { users, data, setEditMsg, imageViewer, setImageViewer, isRead, setIsRead } = useChatContext();
+  const { users, data, setEditMsg, imageViewer, setImageViewer } =
+    useChatContext();
   const { currentUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
 
   const self = message.sender === currentUser.uid;
-  const read = message?.read ? true : false;
-  setIsRead(read); 
   const ref = useRef();
   const imagePreviewUrl = useRef(message.img || null);
 
@@ -30,7 +29,6 @@ const Message = ({ message }) => {
     message.date?.nanoseconds
   );
   const date = timestamp.toDate();
-
 
   const deleteMessage = async (action) => {
     try {
@@ -71,7 +69,10 @@ const Message = ({ message }) => {
   };
 
   return (
-    <div ref={ref} className={`mb-5 max-w-[75%] break-words ${self ? "self-end" : ""}`}>
+    <div
+      ref={ref}
+      className={`mb-5 max-w-[75%] break-words ${self ? "self-end" : ""}`}
+    >
       {showDeletePopup && (
         <DeleteMessagePopup
           onHide={() => setShowDeletePopup(false)}
@@ -105,45 +106,6 @@ const Message = ({ message }) => {
               }}
             ></div>
           )}
-
-          <div
-            className={`bottom-1 right-1 ${self ? "absolute" : "hidden"} ${
-              isRead ? "hidden" : "block"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="10"
-              height="10"
-              viewBox="10 60 100 10"
-            >
-              <path
-                d="M10 45 L40 75 L90 20"
-                fill="none"
-                stroke="grey"
-                stroke-width="20"
-              />
-            </svg>
-          </div>
-          <div
-            className={`bottom-1 right-1 ${self ? "absolute" : "hidden"} ${
-              isRead ? "block" : "hidden"
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="10"
-              height="10"
-              viewBox="10 60 100 10"
-            >
-              <path
-                d="M10 45 L40 75 L90 20"
-                fill="none"
-                stroke="cyan"
-                stroke-width="20"
-              />
-            </svg>
-          </div>
           {message.img && (
             <>
               <Image
