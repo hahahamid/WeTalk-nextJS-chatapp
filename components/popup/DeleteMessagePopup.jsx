@@ -1,12 +1,11 @@
 import React from "react";
 import PopupWrapper from "./PopupWrapper";
 
-
 import { RiErrorWarningLine } from "react-icons/ri";
 import { DELETED_FOR_EVERYONE, DELETED_FOR_ME } from "@/utils/constants";
 
 const DeleteMessagePopup = (props) => {
-
+  
   return (
     <PopupWrapper {...props}>
       <div className="mt-10 mb-5">
