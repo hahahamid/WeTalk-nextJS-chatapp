@@ -109,7 +109,7 @@ const Message = ({ message }) => {
             ></div>
           )}
 
-          <div className= {`bottom-[3px] right-4  ${self ? "absolute" : "hidden"} ${isEdited ? "" : "hidden"}`}>
+          <div className= {`absolute bottom-[2.5px]  ${self ? "right-4" : "left-4"} ${isEdited ? "" : "hidden"}`}>
             <div className="text-[8px] text-zinc-400">edited</div>
           </div>
 
