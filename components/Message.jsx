@@ -24,6 +24,8 @@ const Message = ({ message }) => {
   const ref = useRef();
   const imagePreviewUrl = useRef(message.img || null);
 
+  const isEdited = message.edited === true; 
+
   const timestamp = new Timestamp(
     message.date?.seconds,
     message.date?.nanoseconds
@@ -106,6 +108,11 @@ const Message = ({ message }) => {
               }}
             ></div>
           )}
+
+          <div className= {`bottom-[3px] right-4  ${self ? "absolute" : "hidden"} ${isEdited ? "" : "hidden"}`}>
+            <div className="text-[8px] text-zinc-400">edited</div>
+          </div>
+
           {message.img && (
             <>
               <Image

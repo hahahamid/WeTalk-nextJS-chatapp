@@ -20,7 +20,7 @@ export const ChatContextProvider = ({ children }) => {
   const [attachmentPreview, setAttachmentPreview] = useState(null);
   const [editMsg, setEditMsg] = useState(null);
   const [isTyping, setIsTyping] = useState(null);
-  const [imageViewer, setImageViewer] = useState(null);
+  const [imageViewer, setImageViewer] = useState(null); 
 
   const resetFooterStates = () => {
     setInputText("");

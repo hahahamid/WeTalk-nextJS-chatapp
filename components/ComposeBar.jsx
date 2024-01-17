@@ -176,6 +176,7 @@ const Composebar = () => {
         let updatedMessages = chatDoc.data().messages.map((message) => {
           if (message.id === messageID) {
             message.text = inputText;
+            message.edited = true;
           }
           return message;
         });
