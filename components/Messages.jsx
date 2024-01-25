@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Message from "./Message";
 import { useChatContext } from "@/context/chatContext";
-import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { useAuth } from "@/context/authContext";
 import {
@@ -16,6 +16,19 @@ const Messages = () => {
   const ref = useRef();
 
   useEffect(() => {
+    const fetchMessagesFromCache = async () => {
+      const docRef = doc(db, "chats", data.chatId);
+      const docSnap = await getDoc(docRef, { source: 'cache' });
+
+      if (docSnap.exists()) {
+        setMessages(docSnap.data().messages);
+        setIsTyping(docSnap.data()?.typing?.[data.user.uid] || false);
+        scrollToBottom();
+      }
+    };
+
+    fetchMessagesFromCache();
+
     const unsub = onSnapshot(doc(db, "chats", data.chatId), (doc) => {
       if (doc.exists()) {
         setMessages(doc.data().messages);
