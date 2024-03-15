@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
     try {
       if (currentUser) {
         await updateDoc(doc(db, "users", currentUser?.uid), {
-          isOnline: false,
+          isOnline: false, 
         });
       }
       setCurrentUser(null);
