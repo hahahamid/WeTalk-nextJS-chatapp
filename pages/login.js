@@ -130,7 +130,7 @@ const Login = () => {
         <div className="flex items-center text-3xl font-bold left-[100px] top-[50px] absolute">
           <div className="flex flex-row items-center gap-4">
             <Image src="/mainlogo.png" alt="loading" width={50} height={50} />
-            STIL
+            WeTalk
           </div>
         </div>
 
