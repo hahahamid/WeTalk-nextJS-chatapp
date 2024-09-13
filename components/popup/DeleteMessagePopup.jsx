@@ -34,7 +34,7 @@ const DeleteMessagePopup = (props) => {
             onClick={props.onHide}
             className="border-[2px] border-white py-2 px-4 text-sm rounded-md text-white hover:bg-white hover:text-black"
           >
-            cancel
+            nevermind
           </button>
         </div>
       </div>

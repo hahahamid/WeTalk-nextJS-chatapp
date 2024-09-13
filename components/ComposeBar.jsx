@@ -201,27 +201,27 @@ const Composebar = () => {
   const handleTyping = async (event) => {
     setInputText(event.target.value);
 
-    await updateDoc(doc(db, "chats", data.chatId), {
-      [`typing.${currentUser.uid}`]: true,
-    });
+    // await updateDoc(doc(db, "chats", data.chatId), {
+    //   [`typing.${currentUser.uid}`]: true,
+    // });
 
     // If the user was previously typing, clear the timeout
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
+    // if (typingTimeout) {
+    //   clearTimeout(typingTimeout);
+    // }
 
-    // Set a new timeout for 1.5 seconds after the last keystroke
-    typingTimeout = setTimeout(async () => {
-      // Send a typing indicator to other users indicating that this user has stopped typing
-      // console.log("User has stopped typing");
+    // // Set a new timeout for 1.5 seconds after the last keystroke
+    // typingTimeout = setTimeout(async () => {
+    //   // Send a typing indicator to other users indicating that this user has stopped typing
+    //   // console.log("User has stopped typing");
 
-      await updateDoc(doc(db, "chats", data.chatId), {
-        [`typing.${currentUser.uid}`]: false,
-      });
+    //   await updateDoc(doc(db, "chats", data.chatId), {
+    //     [`typing.${currentUser.uid}`]: false,
+    //   });
 
-      // Reset the timeout
-      typingTimeout = null;
-    }, 100);
+    //   // Reset the timeout
+    //   typingTimeout = null;
+    // }, 100);
   };
 
   return (
@@ -240,6 +240,7 @@ const Composebar = () => {
         className={`h-10 w-10 rounded-xl shrink-0 flex justify-center items-center ${
           inputText.trim().length > 0 ? "bg-c4" : ""
         } ${attachment ? "bg-c4" : ""}`}
+        disabled={!inputText.trim() && !attachment}
       >
         <TbSend size={20} className="text-white" />
       </button>

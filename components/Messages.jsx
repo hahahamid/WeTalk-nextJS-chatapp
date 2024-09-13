@@ -45,6 +45,7 @@ const Messages = () => {
     const chatContainer = ref.current;
     chatContainer.scrollTop = chatContainer.scrollHeight;
   };
+  
 
   return (
     <div ref={ref} className="grow p-5 overflow-auto scrollbar flex flex-col">
