@@ -102,7 +102,7 @@ const Chats = () => {
             if (firstChat) {
               const user = users[firstChat?.userInfo?.uid];
               const chatId =
-                currentUser.uid > user.uid
+                currentUser.uid > user?.uid
                   ? currentUser.uid + user.uid
                   : user.uid + currentUser.uid;
 
