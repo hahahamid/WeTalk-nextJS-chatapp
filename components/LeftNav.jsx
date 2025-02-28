@@ -126,7 +126,7 @@ const LeftNav = () => {
 
   const editProfileContainer = () => {
     return (
-      <div className="flex flex-col items-center relative">
+      <div className="flex flex-col items-center relative h-full">
         <ToastMessage />
         <Icon
           size="small"
@@ -211,7 +211,9 @@ const LeftNav = () => {
   return (
     <div
       className={`${
-        editProfile ? "w-full md:w-[300px]" : "w-[65px] md:w-[80px] items-center"
+        editProfile
+          ? "w-full md:w-[300px]"
+          : "w-[65px] md:w-[80px] items-center"
       } flex flex-col justify-between py-5 shrink-0 transition-all duration-[350ms] ease-in-out`}
     >
       <div className="flex flex-col items-center gap-y-7">
@@ -220,15 +222,27 @@ const LeftNav = () => {
         ) : (
           <>
             {currentUser && (
-              <div
-                className="relative group cursor-pointer"
-                onClick={() => setEditProfile(true)}
-              >
-                <Avatar size="large" user={currentUser} />
-                <div className="w-full h-full rounded-full bg-black/[0.5] absolute top-0 left-0 justify-center items-center hidden group-hover:flex">
-                  <BiEdit size={14} />
+              <>
+                <div
+                  className="relative group cursor-pointer block md:hidden"
+                  // onClick={() => setEditProfile(true)}
+                >
+                  <Avatar size="large" user={currentUser} />
+                  {/* <div className="w-full h-full rounded-full bg-black/[0.5] absolute top-0 left-0 justify-center items-center hidden group-hover:flex">
+                    <BiEdit size={14} />
+                  </div> */}
                 </div>
-              </div>
+
+                <div
+                  className="relative group cursor-pointer hidden md:flex"
+                  onClick={() => setEditProfile(true)}
+                >
+                  <Avatar size="large" user={currentUser} />
+                  <div className="w-full h-full rounded-full bg-black/[0.5] absolute top-0 left-0 justify-center items-center hidden group-hover:flex">
+                    <BiEdit size={14} />
+                  </div>
+                </div>
+              </>
             )}
           </>
         )}

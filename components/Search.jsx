@@ -102,7 +102,6 @@ const Search = () => {
           onChange={(e) => setUsername(e.target.value)}
           onKeyUp={onKeyUp}
           value={username}
-          autoFocus
           className="w-full h-12 rounded-xl bg-c1/[0.5] pl-11 pr-16 placeholder:text-c3 outline-none text-base"
         />
         <span className="absolute top-[14px] right-4 text-sm text-c3">
