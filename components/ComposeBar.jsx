@@ -18,6 +18,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { TbSend } from "react-icons/tb";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import { IoMdSend } from "react-icons/io";
 
 let typingTimeout = null;
 
@@ -225,11 +226,11 @@ const Composebar = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 grow">
+    <div className="flex items-center md:gap-2 grow">
       <ToastMessage />
       <input
         type="text"
-        className="resize-none w-full h-10 outline-0 px-2 py-2 text-white bg-transparent placeholder:text-c3 outline-none text-base"
+        className="resize-none w-full h-10 outline-0 px-2 py-2 text-white bg-transparent text-sm placeholder:text-sm md:placeholder:text-base placeholder:text-c3 outline-none md:text-base"
         placeholder="Type a message"
         value={inputText}
         onChange={handleTyping}
@@ -237,12 +238,13 @@ const Composebar = () => {
       />
       <button
         onClick={!editMsg ? handleSend : handleEdit}
-        className={`h-10 w-10 rounded-xl shrink-0 flex justify-center items-center ${
+        className={`h-8 w-8 md:h-10 md:w-10 rounded-full md:rounded-xl shrink-0 flex justify-center items-center ${
           inputText.trim().length > 0 ? "bg-c4" : ""
         } ${attachment ? "bg-c4" : ""}`}
         disabled={!inputText.trim() && !attachment}
       >
-        <TbSend size={20} className="text-white" />
+        <IoMdSend size={20} className="block md:hidden pl-0.5 text-white" />
+        <TbSend size={20} className="hidden md:block text-white" />
       </button>
     </div>
   );

@@ -65,14 +65,24 @@ const ChatFooter = () => {
           </div>
         </div>
       )}
-      <div className="shrink-0">
+
+
+      
+      <div className="shrink-0 hidden md:block">
         <input
           type="file"
           id="fileUploader"
           className="hidden"
           onChange={onFileChange}
         />
-        <label htmlFor="fileUploader">
+
+        <label htmlFor="fileUploader" className="block md:hidden ">
+          <Icon
+            size="small"
+            icon={<CgAttachment size={18} className="text-c3" />}
+          />
+        </label>
+        <label htmlFor="fileUploader" className="hidden md:block">
           <Icon
             size="large"
             icon={<CgAttachment size={20} className="text-c3" />}
@@ -80,7 +90,7 @@ const ChatFooter = () => {
         </label>
       </div>
 
-      <div className="shrink-0 relative">
+      <div className="shrink-0 relative hidden md:block">
         <Icon
           size="large"
           className={`${showImojiPicker ? "bg-c1" : ""}`}
@@ -100,15 +110,6 @@ const ChatFooter = () => {
           </ClickAwayListener>
         )}
       </div>
-
-      {/* {isTyping && (
-        <div className="absolute -top-6 left-4 bg-c2 w-full h-6">
-          <div className="flex gap-2 w-full h-full opacity-50 text-sm text-white">
-            {`${data.user.displayName} is typing`}
-            <img src="/typing.svg" />
-          </div>
-        </div>
-      )} */}
 
       {editMsg && (
         <div

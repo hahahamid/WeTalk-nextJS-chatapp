@@ -24,7 +24,7 @@ const Message = ({ message }) => {
   const ref = useRef();
   const imagePreviewUrl = useRef(message.img || null);
 
-  const isEdited = message.edited === true; 
+  const isEdited = message.edited === true;
 
   const timestamp = new Timestamp(
     message.date?.seconds,
@@ -73,7 +73,9 @@ const Message = ({ message }) => {
   return (
     <div
       ref={ref}
-      className={`mb-5 max-w-[75%] break-words ${self ? "self-end" : ""}`}
+      className={`mb-5 max-w-[100%] md:max-w-[75%] break-words ${
+        self ? "self-end" : ""
+      }`}
     >
       {showDeletePopup && (
         <DeleteMessagePopup
@@ -90,26 +92,32 @@ const Message = ({ message }) => {
           self ? "justify-start flex-row-reverse" : ""
         }`}
       >
-        <Avatar
-          size="small"
-          user={self ? currentUser : users[data.user.uid]}
-          className="mb-4"
-        />
+        <div className="hidden md:block ">
+          <Avatar
+            size="small"
+            user={self ? currentUser : users[data.user.uid]}
+            className="mb-4"
+          />
+        </div>
         <div
-          className={`group flex flex-col gap-4 p-4 rounded-3xl relative ${
+          className={`group flex flex-col gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-4 rounded-xl md:rounded-3xl relative ${
             self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
           }`}
         >
           {message.text && (
             <div
-              className="text-sm"
+              className="text-xs md:text-sm"
               dangerouslySetInnerHTML={{
                 __html: wrapEmojisInHtmlTag(message.text),
               }}
             ></div>
           )}
 
-          <div className= {`absolute bottom-[2.5px]  ${self ? "right-4" : "left-4"} ${isEdited ? "" : "hidden"}`}>
+          <div
+            className={`absolute bottom-[1px] md:bottom-[2.5px]  ${
+              self ? "right-2 md:right-4" : "left-2 md:left-4"
+            } ${isEdited ? "" : "hidden"}`}
+          >
             <div className="text-[8px] text-zinc-400">edited</div>
           </div>
 
@@ -144,14 +152,19 @@ const Message = ({ message }) => {
           <div
             className={`${
               showMenu ? "" : "hidden"
-            } group-hover:flex absolute top-2 ${
+            } group-hover:flex absolute top-3 ${
               self ? "left-2 bg-c5" : "right-2 bg-c1"
             }`}
             onClick={() => setShowMenu(!showMenu)}
           >
             <Icon
+              size="small"
+              className="md:hidden block hover:bg-inherit rounded-none "
+              icon={<GoChevronDown size={14} className="text-c3" />}
+            />
+            <Icon
               size="medium"
-              className="hover:bg-inherit rounded-none "
+              className="hidden md:block hover:bg-inherit rounded-none "
               icon={<GoChevronDown size={24} className="text-c3" />}
             />
             {showMenu && (
@@ -168,10 +181,12 @@ const Message = ({ message }) => {
       </div>
       <div
         className={`flex items-end ${
-          self ? "justify-start flex-row-reverse mr-12" : "ml-12"
+          self
+            ? "justify-start flex-row-reverse mr-1 md:mr-12"
+            : "ml-1 md:ml-12"
         }`}
       >
-        <div className="text-xs text-c3">{formatDate(date)}</div>
+        <div className="text-[10px] md:text-xs text-c3">{formatDate(date)}</div>
       </div>
     </div>
   );

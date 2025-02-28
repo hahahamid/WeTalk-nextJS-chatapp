@@ -8,6 +8,7 @@ import { FiPlus } from "react-icons/fi";
 import { BiCheck, BiEdit } from "react-icons/bi";
 import { MdAddAPhoto, MdPhotoCamera, MdDeleteForever } from "react-icons/md";
 import { BsFillCheckCircleFill } from "react-icons/bs";
+import { PiChats } from "react-icons/pi";
 
 import UsersPopup from "./popup/UsersPopup";
 import { profileColors } from "@/utils/constants";
@@ -18,9 +19,11 @@ import ToastMessage from "./ToastMessage";
 import { toast } from "react-toastify";
 import { updateProfile } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import RecentChatsPopup from "./popup/RecentChatsPopup";
 
 const LeftNav = () => {
   const [userPopup, setUserPopup] = useState(false);
+  const [recentChatsPopup, setRecentChatsPopup] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
   const [nameEdited, setNameEdited] = useState(false);
 
@@ -127,7 +130,7 @@ const LeftNav = () => {
         <ToastMessage />
         <Icon
           size="small"
-          className="absolute top-0 right-5 hover:bg-c2"
+          className="absolute top-0 -right-14 md:-right-4 hover:bg-c2"
           icon={<IoClose size={20} />}
           onClick={() => setEditProfile(false)}
         />
@@ -206,37 +209,54 @@ const LeftNav = () => {
   };
 
   return (
-    <div 
+    <div
       className={`${
-        editProfile ? "w-[300px]" : "w-[80px] items-center"
+        editProfile ? "w-full md:w-[300px]" : "w-[65px] md:w-[80px] items-center"
       } flex flex-col justify-between py-5 shrink-0 transition-all duration-[350ms] ease-in-out`}
     >
-      {editProfile ? (
-        editProfileContainer()
-      ) : (
-        <>
-          {currentUser && (
-            <div
-              className="relative group cursor-pointer"
-              onClick={() => setEditProfile(true)}
-            >
-              <Avatar size="large" user={currentUser} />
-              <div className="w-full h-full rounded-full bg-black/[0.5] absolute top-0 left-0 justify-center items-center hidden group-hover:flex">
-                <BiEdit size={14} />
+      <div className="flex flex-col items-center gap-y-7">
+        {editProfile ? (
+          editProfileContainer()
+        ) : (
+          <>
+            {currentUser && (
+              <div
+                className="relative group cursor-pointer"
+                onClick={() => setEditProfile(true)}
+              >
+                <Avatar size="large" user={currentUser} />
+                <div className="w-full h-full rounded-full bg-black/[0.5] absolute top-0 left-0 justify-center items-center hidden group-hover:flex">
+                  <BiEdit size={14} />
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+
+        <div
+          onClick={() => setRecentChatsPopup(true)}
+          className="flex md:hidden flex-col items-center gap-y-1"
+        >
+          <PiChats size={30} />
+          <span className="text-xs">recent</span>
+        </div>
+      </div>
 
       <div
         className={`flex gap-5 justify-center ${
           editProfile ? "ml-5" : "flex-col items-center"
-        }`} 
+        }`}
       >
         <Icon
+          size="large"
+          className="block md:hidden bg-green-500 hover:bg-green-600"
+          icon={<FiPlus size={24} />}
+          onClick={() => setUserPopup(!userPopup)}
+        />
+
+        <Icon
           size="x-large"
-          className="bg-green-500 hover:bg-green-600"
+          className="hidden md:flex bg-green-500 hover:bg-green-600"
           icon={<FiPlus size={24} />}
           onClick={() => setUserPopup(!userPopup)}
         />
@@ -249,6 +269,9 @@ const LeftNav = () => {
       </div>
 
       {userPopup && <UsersPopup onHide={() => setUserPopup(false)} />}
+      {recentChatsPopup && (
+        <RecentChatsPopup onHide={() => setRecentChatsPopup(false)} />
+      )}
     </div>
   );
 };

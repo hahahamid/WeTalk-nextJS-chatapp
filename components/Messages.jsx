@@ -95,7 +95,7 @@ const Messages = () => {
   };
 
   return (
-    <div ref={ref} className="grow p-5 overflow-auto scrollbar flex flex-col">
+    <div ref={ref} className="grow md:px-5 md:py-5 overflow-auto scrollbar flex flex-col">
       {isLoadingMore && (
         <div className="spinner-container">
           <Spinner />

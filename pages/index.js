@@ -30,10 +30,16 @@ const Home = () => {
         <title>Home</title>
       </Head>
 
-      <div className="bg-c1 flex h-[100vh]">
+      <div className="bg-c1 flex h-screen md:h-[100vh]">
         <div className="flex w-full shrink-0">
           <LeftNav />
-          <div className="flex bg-c2 grow">
+
+          <div className="flex md:hidden bg-c2 grow">
+            {/* <Sidebar /> */}
+            {data.user && <Chat />}
+          </div>
+
+          <div className="hidden md:flex bg-c2 grow">
             <Sidebar />
             {data.user && <Chat />}
           </div>

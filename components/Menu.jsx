@@ -16,14 +16,14 @@ const Menu = ({ self, setShowMenu, showMenu, setShowDeletePopup, editMsg }) => {
     <ClickAwayListener onClickAway={handleClickAway}>
       <div
         ref={ref}
-        className={`w-[200px] absolute top-8 bg-c0 z-10 rounded-md overflow-hidden ${
-          self ? "right-0" : "left-0"
+        className={`w-auto md:w-[200px] text-xs md:text-base absolute top-8 bg-c0 z-10 rounded-md overflow-hidden ${
+          self ? "left-0" : "right-0"
         }`}
       >
-        <ul className="flex flex-col py-2">
+        <ul className="flex flex-col md:py-2">
           {self && (
             <li
-              className="flex items-center py-3 px-5 hover:bg-black cursor-pointer"
+              className="flex items-center py-3 px-2 md:px-5 hover:bg-black cursor-pointer whitespace-nowrap"
               onClick={(e) => {
                 e.stopPropagation();
                 editMsg();
@@ -34,7 +34,7 @@ const Menu = ({ self, setShowMenu, showMenu, setShowDeletePopup, editMsg }) => {
             </li>
           )}
           <li
-            className="flex items-center py-3 px-5 hover:bg-black cursor-pointer"
+            className="flex items-center py-3 px-2 md:px-5 hover:bg-black cursor-pointer whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
               setShowDeletePopup();
