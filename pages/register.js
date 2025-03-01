@@ -116,7 +116,7 @@ const Register = () => {
 
       <ToastMessage />
 
-      <div className="h-[100vh] flex justify-center items-center bg-c1">
+      <div className="h-screen md:h-[100vh] flex justify-center items-center bg-c1">
         <div className="flex items-center text-3xl font-bold left-[100px] top-[50px] absolute">
           <div className="flex flex-row items-center gap-4">
             <Image src="/mainlogo.png" alt="loading" width={50} height={50} />
@@ -125,32 +125,36 @@ const Register = () => {
         </div>
         <div className="flex items-center flex-col">
           <div className="text-center">
-            <div className="text-4xl font-bold mt-20">Create a New Account</div>
-            <div className="mt-3 text-c3">
+            <div className="text-xl md:text-4xl font-bold mt-20">
+              Create a New Account
+            </div>
+            <div className="mt-3 text-c3 text-sm md:text-base">
               connect and chat with anyone, anywhere
             </div>
           </div>
-          <div className="flex items-center gap-2 w-full mt-10 mb-5">
+          <div className="flex flex-col md:flex-row items-center gap-2 w-full mt-10 mb-5">
             <div
-              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-1/2 h-14 rounded-md cursor-pointer p-[1px]"
+              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full md:w-1/2 h-10 md:h-14 rounded-md cursor-pointer p-[1px]"
               onClick={signInWithGoogle}
             >
               <div className="flex items-center justify-center gap-3 text-white font-semibold bg-c1 w-full h-full rounded-md">
                 <IoLogoGoogle size={24} />
-                <span>Login with Google</span>
+                <span className="text-sm md:text-base">Login with Google</span>
               </div>
             </div>
             <div
-              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-1/2 h-14 rounded-md cursor-pointer p-[1px]"
+              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full md:w-1/2 h-10 md:h-14 rounded-md cursor-pointer p-[1px]"
               onClick={signInAsGuest}
             >
               <div className="flex items-center justify-center gap-3 text-white font-semibold bg-c1 w-full h-full rounded-md">
                 <FaUser size={24} />
-                <span> Sign in as Guest </span>
+                <span className="text-sm md:text-base"> Sign in as Guest </span>
               </div>
             </div>
           </div>
-          <p className="mb-2">If you just wanna test the app, sign in as Guest. ☝️</p>
+          <p className="hidden md:block mb-2">
+            If you just wanna test the app, sign in as Guest. ☝️
+          </p>
           <div className="flex items-center gap-1">
             <span className="w-5 h-[1px] bg-c3"></span>
             <span className="text-c3 font-semibold">OR</span>
@@ -158,30 +162,30 @@ const Register = () => {
           </div>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col items-center gap-3 w-[500px] mt-5"
+            className="flex flex-col items-center gap-3 w-auto md:w-[500px] mt-5"
           >
             <input
               type="text"
               placeholder="Your Beautiful Name"
-              className="w-full h-14 bg-c5 rounded-xl outline-none border-none px-5 text-c3"
+              className="w-full h-10 md:h-14 bg-c5 rounded-lg md:rounded-xl outline-none border-none px-5 text-c3 placeholder:text-sm md:placeholder:text-base"
               autoComplete="off"
               required
             />
             <input
               type="email"
               placeholder="Enter your Email"
-              className="w-full h-14 bg-c5 rounded-xl outline-none border-none px-5 text-c3"
+              className="w-full h-10 md:h-14 bg-c5 rounded-lg md:rounded-xl outline-none border-none px-5 text-c3 placeholder:text-sm md:placeholder:text-base"
               autoComplete="off"
               required
             />
             <input
               type="password"
               placeholder="Password"
-              className="w-full h-14 bg-c5 rounded-xl outline-none border-none px-5 text-c3"
+              className="w-full h-10 md:h-14 bg-c5 rounded-lg md:rounded-xl outline-none border-none px-5 text-c3 placeholder:text-sm md:placeholder:text-base"
               autoComplete="off"
               required
             />
-            <button className="mt-4 w-full h-14 rounded-xl outline-none text-base font-semibold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+            <button className="mt-4 w-full h-10 md:h-14 rounded-lg md:rounded-xl outline-none text-base font-semibold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
               Sign Up
             </button>
           </form>
