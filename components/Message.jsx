@@ -13,6 +13,7 @@ import DeleteMessagePopup from "./popup/DeleteMessagePopup";
 import ImageViewer from "react-simple-image-viewer";
 import Image from "next/image";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Message = ({ message }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -123,69 +124,72 @@ const Message = ({ message }) => {
             className="mb-4"
           />
         </div>
-        <div
-          className={`group flex flex-col gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl relative ${
-            self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
-          }`}
-        >
-          {message.text && (
-            <div
-              className="text-xs md:text-sm"
-              dangerouslySetInnerHTML={{
-                __html: wrapEmojisInHtmlTag(message.text),
-              }}
-            ></div>
-          )}
 
-          {/* Display Reactions */}
-          {Object.keys(message.reactions || {}).length > 0 && (
-            <div className="absolute -bottom-2 left-0.5 md:left-2 bg-c2 rounded-full border-2 border-c1 p-0.5 md:p-[1px] flex gap-2">
-              {Object.entries(message.reactions).map(([userId, emoji]) => (
-                <div
-                  key={userId}
-                  className="flex items-center text-[9px] md:text-[11px] text-center rounded-full"
-                >
-                  <span>{emoji}</span>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="flex items-center relative gap-x-2 md:gap-x-5">
+          <div
+            className={`group flex gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl ${
+              self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
+            }`}
+          >
+            {message.text && (
+              <div
+                className="text-xs md:text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: wrapEmojisInHtmlTag(message.text),
+                }}
+              ></div>
+            )}
 
-          {message.img && (
-            <>
-              <Image
-                src={message.img}
-                width={250}
-                height={250}
-                className="rounded-3xl max-w-[250px]"
-                alt="image"
-                onClick={() =>
-                  setImageViewer({
-                    msgId: message.id,
-                    url: message.img,
-                  })
-                }
-              />
-              {imageViewer && imageViewer?.msgId === message?.id && (
-                <ImageViewer
-                  src={[imageViewer.url]}
+            {/* Display Reactions */}
+            {Object.keys(message.reactions || {}).length > 0 && (
+              <div
+                className={`absolute -bottom-2 left-0.5 md:left-2 ${
+                  self ? "bg-c5 border-c2" : "bg-c2 border-c1"
+                } rounded-full border-2  p-0.5 md:p-[1px] flex gap-2`}
+              >
+                {Object.entries(message.reactions).map(([userId, emoji]) => (
+                  <div
+                    key={userId}
+                    className="flex items-center text-[9px] md:text-[11px] text-center rounded-full"
+                  >
+                    <span>{emoji}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {message.img && (
+              <>
+                <Image
+                  src={message.img}
+                  width={250}
+                  height={250}
+                  className="rounded-3xl max-w-[250px]"
                   alt="image"
-                  currentIndex={0}
-                  disableScroll={false}
-                  closeOnClickOutside={true}
-                  onClose={() => setImageViewer(null)}
+                  onClick={() =>
+                    setImageViewer({
+                      msgId: message.id,
+                      url: message.img,
+                    })
+                  }
                 />
-              )}
-            </>
-          )}
+                {imageViewer && imageViewer?.msgId === message?.id && (
+                  <ImageViewer
+                    src={[imageViewer.url]}
+                    alt="image"
+                    currentIndex={0}
+                    disableScroll={false}
+                    closeOnClickOutside={true}
+                    onClose={() => setImageViewer(null)}
+                  />
+                )}
+              </>
+            )}
+          </div>
 
           {/* Reaction Button */}
-          {!self && ( // Show reaction button only for other users' messages
-            <div
-              className={`absolute bottom-1 md:bottom-2.5 ${
-                self ? "left-2 md:left-4" : "-right-6 md:-right-7"
-              }`}
-            >
+          {!self && (
+            <div className={`flex items-center relative`}>
               <button
                 className="text-c3 hover:text-white cursor-pointer"
                 onClick={() => setShowReactionMenu(!showReactionMenu)}
@@ -193,40 +197,49 @@ const Message = ({ message }) => {
                 <MdOutlineEmojiEmotions />
               </button>
 
-              {/* Reaction Menu */}
-              {showReactionMenu && (
-                <div
-                  ref={reactionMenuRef} // Attach ref to the reaction menu
-                  className={`absolute flex bottom-full mb-1 ${
-                    self ? "left-0" : "-left-16 md:-left-20"
-                  } bg-opacity-50 backdrop-blur-md border border-gray-300 shadow-md rounded-full px-2 md:px-4 z-10`}
-                >
-                  <button
-                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
-                    onClick={() => handleReaction("👍")}
+              {/* Reaction Menu with Smooth Animation */}
+              <AnimatePresence>
+                {showReactionMenu && (
+                  <motion.div
+                    ref={reactionMenuRef}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    className={`absolute flex bottom-5 mb-1 ${
+                      self ? "left-0" : "right-1 md:-right-20"
+                    } bg-opacity-50 backdrop-blur-md border border-white border-opacity-50 shadow-md rounded-full px-2 md:px-4 z-10`}
+                    style={{
+                      boxShadow: "0 0 10px 3px rgba(0, 123, 255, 0.5)", // Glowing border effect
+                    }}
                   >
-                    👍
-                  </button>
-                  <button
-                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
-                    onClick={() => handleReaction("👎")}
-                  >
-                    👎
-                  </button>
-                  <button
-                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
-                    onClick={() => handleReaction("❤️")}
-                  >
-                    ❤️
-                  </button>
-                  <button
-                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
-                    onClick={() => handleReaction("🙏")}
-                  >
-                    🙏
-                  </button>
-                </div>
-              )}
+                    <button
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      onClick={() => handleReaction("👍")}
+                    >
+                      👍
+                    </button>
+                    <button
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      onClick={() => handleReaction("👎")}
+                    >
+                      👎
+                    </button>
+                    <button
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      onClick={() => handleReaction("❤️")}
+                    >
+                      ❤️
+                    </button>
+                    <button
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      onClick={() => handleReaction("🙏")}
+                    >
+                      🙏
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>
