@@ -5,8 +5,8 @@ import Avatar from "./Avatar";
 import { formatDate, wrapEmojisInHtmlTag } from "@/utils/helper";
 import { Timestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
-import { GoChevronDown } from "react-icons/go";
-import Icon from "./Icon";
+
+import { GoKebabHorizontal } from "react-icons/go";
 import Menu from "./Menu";
 import { DELETED_FOR_ME, DELETED_FOR_EVERYONE } from "@/utils/constants";
 import DeleteMessagePopup from "./popup/DeleteMessagePopup";
@@ -22,6 +22,43 @@ const Message = ({ message }) => {
   const { currentUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [showReactionMenu, setShowReactionMenu] = useState(false);
+
+  const deleteMessage = async (action) => {
+    try {
+      const messageID = message.id;
+      const chatRef = doc(db, "chats", data.chatId);
+
+      // Retrieve the chat document from Firestore
+      const chatDoc = await getDoc(chatRef);
+
+      // Create a new "messages" array that excludes the message with the matching ID
+      const updatedMessages = chatDoc.data().messages.map((message) => {
+        if (message.id === messageID) {
+          if (action === DELETED_FOR_ME) {
+            message.deletedInfo = {
+              [currentUser.uid]: DELETED_FOR_ME,
+            };
+          }
+
+          if (action === DELETED_FOR_EVERYONE) {
+            message.deletedInfo = {
+              deletedForEveryone: true,
+            };
+          }
+        }
+        return message;
+      });
+
+      await updateDoc(chatRef, { messages: updatedMessages });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deletePopupHandler = () => {
+    setShowDeletePopup(true);
+    setShowMenu(false);
+  };
 
   const self = message.sender === currentUser.uid; // Check if the message is sent by the current user
   const ref = useRef();
@@ -126,6 +163,27 @@ const Message = ({ message }) => {
         </div>
 
         <div className="flex items-center relative gap-x-2 md:gap-x-5">
+          {self && (
+            <div className={`flex items-center relative`}>
+              <button
+                className="text-c3 hover:text-white cursor-pointer"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                onClick={() => setShowMenu(!showMenu)}
+              >
+                <GoKebabHorizontal />
+              </button>
+
+              {showMenu && (
+                <Menu
+                  self={self}
+                  setShowMenu={setShowMenu}
+                  showMenu={showMenu}
+                  setShowDeletePopup={deletePopupHandler}
+                  editMsg={() => setEditMsg(message)}
+                />
+              )}
+            </div>
+          )}
           <div
             className={`group flex gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl ${
               self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
@@ -189,7 +247,7 @@ const Message = ({ message }) => {
 
           {/* Reaction Button */}
           {!self && (
-            <div className={`flex items-center relative`}>
+            <div className={`flex items-center relative gap-x-1 md:gap-x-2`}>
               <button
                 className="text-c3 hover:text-white cursor-pointer"
                 style={{ WebkitTapHighlightColor: "transparent" }}
@@ -211,7 +269,7 @@ const Message = ({ message }) => {
                       self ? "left-0" : "right-1 md:-right-20"
                     } bg-opacity-50 backdrop-blur-md border border-white border-opacity-50 shadow-md rounded-full px-2 md:px-4 z-10`}
                     style={{
-                      boxShadow: "0 0 10px 3px rgba(0, 123, 255, 0.5)", // Glowing border effect
+                      boxShadow: "0 0 7px 2px rgba(0, 123, 255, 0.5)", // Glowing border effect
                     }}
                   >
                     <button
@@ -245,6 +303,26 @@ const Message = ({ message }) => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <div className={`flex items-center relative`}>
+                <button
+                  className="text-c3 hover:text-white cursor-pointer"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  <GoKebabHorizontal />
+                </button>
+
+                {showMenu && (
+                  <Menu
+                    self={self}
+                    setShowMenu={setShowMenu}
+                    showMenu={showMenu}
+                    setShowDeletePopup={deletePopupHandler}
+                    editMsg={() => setEditMsg(message)}
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
