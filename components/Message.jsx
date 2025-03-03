@@ -192,6 +192,7 @@ const Message = ({ message }) => {
             <div className={`flex items-center relative`}>
               <button
                 className="text-c3 hover:text-white cursor-pointer"
+                style={{ WebkitTapHighlightColor: "transparent" }}
                 onClick={() => setShowReactionMenu(!showReactionMenu)}
               >
                 <MdOutlineEmojiEmotions />
@@ -215,24 +216,28 @@ const Message = ({ message }) => {
                   >
                     <button
                       className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
                       onClick={() => handleReaction("👍")}
                     >
                       👍
                     </button>
                     <button
                       className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
                       onClick={() => handleReaction("👎")}
                     >
                       👎
                     </button>
                     <button
                       className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
                       onClick={() => handleReaction("❤️")}
                     >
                       ❤️
                     </button>
                     <button
-                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg focus:outline-none"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
                       onClick={() => handleReaction("🙏")}
                     >
                       🙏
