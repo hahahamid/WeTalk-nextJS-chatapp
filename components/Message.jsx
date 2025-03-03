@@ -12,6 +12,7 @@ import { DELETED_FOR_ME, DELETED_FOR_EVERYONE } from "@/utils/constants";
 import DeleteMessagePopup from "./popup/DeleteMessagePopup";
 import ImageViewer from "react-simple-image-viewer";
 import Image from "next/image";
+import { MdOutlineEmojiEmotions } from "react-icons/md";
 
 const Message = ({ message }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -19,10 +20,11 @@ const Message = ({ message }) => {
     useChatContext();
   const { currentUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [showReactionMenu, setShowReactionMenu] = useState(false);
 
-  const self = message.sender === currentUser.uid;
+  const self = message.sender === currentUser.uid; // Check if the message is sent by the current user
   const ref = useRef();
-  const imagePreviewUrl = useRef(message.img || null);
+  const reactionMenuRef = useRef(); // Reference for the reaction menu
 
   const isEdited = message.edited === true;
 
@@ -32,43 +34,65 @@ const Message = ({ message }) => {
   );
   const date = timestamp.toDate();
 
-  const deleteMessage = async (action) => {
+  // Function to handle adding a reaction
+  const handleReaction = async (emoji) => {
     try {
+      if (self) return; // Prevent reacting to self-messages
+
       const messageID = message.id;
       const chatRef = doc(db, "chats", data.chatId);
 
       // Retrieve the chat document from Firestore
       const chatDoc = await getDoc(chatRef);
+      const messages = chatDoc.data().messages;
 
-      // Create a new "messages" array that excludes the message with the matching ID
-      const updatedMessages = chatDoc.data().messages.map((message) => {
-        if (message.id === messageID) {
-          if (action === DELETED_FOR_ME) {
-            message.deletedInfo = {
-              [currentUser.uid]: DELETED_FOR_ME,
-            };
-          }
+      // Find the message and update its reactions
+      const updatedMessages = messages.map((msg) => {
+        if (msg.id === messageID) {
+          const updatedReactions = { ...msg.reactions };
 
-          if (action === DELETED_FOR_EVERYONE) {
-            message.deletedInfo = {
-              deletedForEveryone: true,
-            };
-          }
+          // Replace or add the user's reaction
+          updatedReactions[currentUser.uid] = emoji;
+
+          msg.reactions = updatedReactions;
         }
-        return message;
+        return msg;
       });
 
-      // Update the chat document in Firestore with the new "messages" array
+      // Update the chat document in Firestore
       await updateDoc(chatRef, { messages: updatedMessages });
     } catch (err) {
       console.error(err);
+    } finally {
+      setShowReactionMenu(false);
     }
   };
 
-  const deletePopupHandler = () => {
-    setShowDeletePopup(true);
-    setShowMenu(false);
+  // Helper function to extract the reaction for the current user
+  const getUserReaction = () => {
+    const reactions = message.reactions || {};
+    return reactions[currentUser.uid];
   };
+
+  // Handle clicks outside the reaction menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        reactionMenuRef.current &&
+        !reactionMenuRef.current.contains(event.target)
+      ) {
+        setShowReactionMenu(false);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div
@@ -100,7 +124,7 @@ const Message = ({ message }) => {
           />
         </div>
         <div
-          className={`group flex flex-col gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-4 rounded-xl md:rounded-3xl relative ${
+          className={`group flex flex-col gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl relative ${
             self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
           }`}
         >
@@ -113,13 +137,19 @@ const Message = ({ message }) => {
             ></div>
           )}
 
-          <div
-            className={`absolute bottom-[1px] md:bottom-[2.5px]  ${
-              self ? "right-2 md:right-4" : "left-2 md:left-4"
-            } ${isEdited ? "" : "hidden"}`}
-          >
-            <div className="text-[8px] text-zinc-400">edited</div>
-          </div>
+          {/* Display Reactions */}
+          {Object.keys(message.reactions || {}).length > 0 && (
+            <div className="absolute -bottom-2 left-0.5 md:left-2 bg-c2 rounded-full border-2 border-c1 p-0.5 md:p-[1px] flex gap-2">
+              {Object.entries(message.reactions).map(([userId, emoji]) => (
+                <div
+                  key={userId}
+                  className="flex items-center text-[9px] md:text-[11px] text-center rounded-full"
+                >
+                  <span>{emoji}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {message.img && (
             <>
@@ -149,38 +179,60 @@ const Message = ({ message }) => {
             </>
           )}
 
-          <div
-            className={`${
-              showMenu ? "" : "hidden"
-            } group-hover:flex absolute top-3 ${
-              self ? "left-2 bg-c5" : "right-2 bg-c1"
-            }`}
-            onClick={() => setShowMenu(!showMenu)}
-          >
-            <Icon
-              size="small"
-              className="md:hidden block hover:bg-inherit rounded-none "
-              icon={<GoChevronDown size={14} className="text-c3" />}
-            />
-            <Icon
-              size="medium"
-              className="hidden md:block hover:bg-inherit rounded-none "
-              icon={<GoChevronDown size={24} className="text-c3" />}
-            />
-            {showMenu && (
-              <Menu
-                self={self}
-                setShowMenu={setShowMenu}
-                showMenu={showMenu}
-                setShowDeletePopup={deletePopupHandler}
-                editMsg={() => setEditMsg(message)}
-              />
-            )}
-          </div>
+          {/* Reaction Button */}
+          {!self && ( // Show reaction button only for other users' messages
+            <div
+              className={`absolute bottom-1 md:bottom-2.5 ${
+                self ? "left-2 md:left-4" : "-right-6 md:-right-7"
+              }`}
+            >
+              <button
+                className="text-c3 hover:text-white cursor-pointer"
+                onClick={() => setShowReactionMenu(!showReactionMenu)}
+              >
+                <MdOutlineEmojiEmotions />
+              </button>
+
+              {/* Reaction Menu */}
+              {showReactionMenu && (
+                <div
+                  ref={reactionMenuRef} // Attach ref to the reaction menu
+                  className={`absolute flex bottom-full mb-1 ${
+                    self ? "left-0" : "-left-16 md:-left-20"
+                  } bg-opacity-50 backdrop-blur-md border border-gray-300 shadow-md rounded-full px-2 md:px-4 z-10`}
+                >
+                  <button
+                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                    onClick={() => handleReaction("👍")}
+                  >
+                    👍
+                  </button>
+                  <button
+                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                    onClick={() => handleReaction("👎")}
+                  >
+                    👎
+                  </button>
+                  <button
+                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                    onClick={() => handleReaction("❤️")}
+                  >
+                    ❤️
+                  </button>
+                  <button
+                    className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                    onClick={() => handleReaction("🙏")}
+                  >
+                    🙏
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div
-        className={`flex items-end ${
+        className={`flex items-end mt-2 ${
           self
             ? "justify-start flex-row-reverse mr-1 md:mr-12"
             : "ml-1 md:ml-12"
