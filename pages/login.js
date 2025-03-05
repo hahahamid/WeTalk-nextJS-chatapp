@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { IoLogoGoogle, IoLogoFacebook } from "react-icons/io";
 import { FaUser } from "react-icons/fa";
-import { auth } from "@/firebase/firebase";
+import { auth, db } from "@/firebase/firebase";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
@@ -20,6 +20,8 @@ import { toast } from "react-toastify";
 import Preloader from "@/components/Preloader";
 import Image from "next/image";
 import Head from "next/head";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { profileColors } from "@/utils/constants";
 
 const Login = () => {
   const router = useRouter();
@@ -79,13 +81,35 @@ const Login = () => {
   };
 
   const signInWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, gProvider);
-      console.log("Google Sign-In Success:");
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
+      try {
+        const userCredential = await signInWithPopup(auth, gProvider);
+        const user = userCredential.user;
+  
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+  
+        if (!userDoc.exists()) {
+          const colorIndex = Math.floor(Math.random() * profileColors.length);
+          await setDoc(userRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            provider: "google",
+            color: profileColors[colorIndex],
+            isOnline: true,
+          });
+  
+          // Create userChats document
+          await setDoc(doc(db, "userChats", user.uid), {});
+        }
+  
+        // Redirect after successful registration
+        router.push("/");
+      } catch (error) {
+        console.error("Google Sign-In Error:", error);
+      }
+    };
 
   const signInWithFacebook = async () => {
     try {

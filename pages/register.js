@@ -18,7 +18,7 @@ const fProvider = new FacebookAuthProvider();
 import ToastMessage from "@/components/ToastMessage";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { profileColors } from "@/utils/constants";
 import Preloader from "@/components/Preloader";
 import Image from "next/image";
@@ -37,9 +37,33 @@ const Register = () => {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, gProvider);
+      const userCredential = await signInWithPopup(auth, gProvider);
+      const user = userCredential.user;
+
+      // Check/Create Firestore user
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        const colorIndex = Math.floor(Math.random() * profileColors.length);
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          provider: "google",
+          color: profileColors[colorIndex],
+          isOnline: true,
+        });
+
+        // Create userChats document
+        await setDoc(doc(db, "userChats", user.uid), {});
+      }
+
+      // Redirect after successful registration
+      router.push("/");
     } catch (error) {
-      console.log(error);
+      console.error("Google Sign-In Error:", error);
     }
   };
 

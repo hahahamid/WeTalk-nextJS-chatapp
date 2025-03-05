@@ -156,7 +156,7 @@ const Chats = () => {
       readChat(selectedChatId);
     }
   };
- 
+
   return (
     <div className="flex flex-col h-full">
       <div className="shrink-0 sticky -top-[20px] z-10 flex justify-center w-full bg-c2 py-5">
@@ -170,9 +170,27 @@ const Chats = () => {
         />
       </div>
       <ul className="flex flex-col w-full my-5 gap-[4px]">
+        {!users && (
+          <li className="flex justify-center items-center h-[90px]">
+            Loading...
+          </li>
+        )}
+
+        {users &&
+          filteredChats?.length === 0 &&
+          Object.keys(users).length > 0 && (
+            <>
+              <li className="flex justify-center items-center h-[40px] text-c3">
+                No chats yet. Start a new conversation!
+              </li>
+              <li className="flex justify-center items-center h-[40px] text-c3">
+                Click on the green button on your left
+              </li>
+            </>
+          )}
+
         {Object.keys(users || {}).length > 0 &&
           filteredChats?.map((chat) => {
-            
             const timestamp = new Timestamp(
               chat[1].date?.seconds,
               chat[1].date?.nanoseconds
@@ -200,14 +218,11 @@ const Chats = () => {
                       (chat[1]?.lastMessage?.img + "image") ||
                       "bell the cat! send a text"} */}
 
-                      {
-                        chat[1]?.lastMessage?.text
-                        ? chat[1]?.lastMessage?.text
-                        : chat[1]?.lastMessage?.img
-                          ? "image"
-                          : "bell the cat! send a text"
-                      
-                      }
+                    {chat[1]?.lastMessage?.text
+                      ? chat[1]?.lastMessage?.text
+                      : chat[1]?.lastMessage?.img
+                      ? "image"
+                      : "bell the cat! send a text"}
                   </p>
 
                   {!!unreadMsgs?.[chat[0]]?.length && (
