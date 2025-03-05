@@ -17,7 +17,6 @@ import { useEffect } from "react";
 const UsersPopup = (props) => {
   const { currentUser } = useAuth();
   const { users, dispatch, setUsers } = useChatContext();
-  
 
   const handleSelect = async (user) => {
     try {
@@ -81,14 +80,23 @@ const UsersPopup = (props) => {
     }
   };
 
+  const sortedUsers = Object.values(users || {}).sort((a, b) => {
+    const aOnline = a.isOnline || false;
+    const bOnline = b.isOnline || false;
+    
+    if (aOnline && !bOnline) return -1;
+    if (!aOnline && bOnline) return 1;
+    
+    return a.displayName.localeCompare(b.displayName);
+  });
   return (
     <PopupWrapper {...props} title="Add User">
       <Search />
 
       <div className="mt-5 flex flex-col gap-2 grow relative overflow-auto scrollbar">
         <div className="absolute w-full">
-          {users &&
-            Object.values(users).map((user) => (
+          {sortedUsers &&
+            Object.values(sortedUsers).map((user) => (
               <div
                 key={user.id}
                 onClick={() => handleSelect(user)}
