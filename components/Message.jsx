@@ -201,8 +201,8 @@ const Message = ({ message }) => {
             {/* Display Reactions */}
             {Object.keys(message.reactions || {}).length > 0 && (
               <div
-                className={`absolute -bottom-2 left-0.5 md:left-2 ${
-                  self ? "bg-c5 border-c2" : "bg-c2 border-c1"
+                className={`absolute -bottom-2 ${
+                  self ? "bg-c5 border-c2 right-0.5 md:right-1" : "left-0.5 md:left-2 bg-c2 border-c1"
                 } rounded-full border-2  p-0.5 md:p-[1px] flex gap-2`}
               >
                 {Object.entries(message.reactions).map(([userId, emoji]) => (
