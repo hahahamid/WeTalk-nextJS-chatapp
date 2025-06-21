@@ -63,7 +63,7 @@ const Login = () => {
     try {
       toast.promise(
         async () => {
-          await signInWithEmailAndPassword(auth, "guest@wetalk.com", "test123");
+          await signInWithEmailAndPassword(auth, "guestuser@wetalk.com", "test123");
           console.log("Signed in as guest successfully");
         },
         {
