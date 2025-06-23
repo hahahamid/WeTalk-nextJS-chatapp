@@ -21,6 +21,7 @@ export const ChatContextProvider = ({ children }) => {
   const [editMsg, setEditMsg] = useState(null);
   const [isTyping, setIsTyping] = useState(null);
   const [imageViewer, setImageViewer] = useState(null); 
+  const [replyTo, setReplyTo] = useState(null); // Added for reply functionality
 
   const resetFooterStates = () => {
     setInputText("");
@@ -28,6 +29,7 @@ export const ChatContextProvider = ({ children }) => {
     setAttachmentPreview(null);
     setEditMsg(null);
     setImageViewer(null);
+    setReplyTo(null); // Reset reply state
   };
 
   const INITIAL_STATE = {
@@ -78,6 +80,8 @@ export const ChatContextProvider = ({ children }) => {
         resetFooterStates,
         imageViewer,
         setImageViewer,
+        replyTo,
+        setReplyTo, // Provide reply state to components
       }}
     >
       {children}

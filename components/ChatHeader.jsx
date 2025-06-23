@@ -50,7 +50,7 @@ const ChatHeader = (props) => {
 
       sendEmailNotification();
     }
-  }, [user, online]); // Trigger when user or online status changes
+  }, [online]); // Trigger when user or online status changes
 
   return (
     <div className="flex justify-between items-center pb-5 border-b border-white/[0.05]">

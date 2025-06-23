@@ -2,6 +2,8 @@ import { useChatContext } from "@/context/chatContext";
 import { useAuth } from "@/context/authContext";
 import { db, storage } from "@/firebase/firebase";
 import ToastMessage from "@/components/ToastMessage";
+import { FaTimes } from "react-icons/fa"; // Import the "x" icon
+import { RiReplyFill } from "react-icons/ri";
 
 import { v4 as uuid } from "uuid";
 import {
@@ -33,10 +35,28 @@ const Composebar = () => {
     data,
     editMsg,
     setEditMsg,
+    replyTo,
+    setReplyTo,
+    users,
   } = useChatContext();
   const [cursorPosition, setCursorPosition] = useState(0);
 
   const handleSend = async () => {
+    const newMessage = {
+      id: uuid(),
+      text: inputText,
+      sender: currentUser.uid,
+      date: Timestamp.now(),
+      read: false,
+    };
+
+    if (replyTo) {
+      newMessage.quotedMessage = {
+        text: replyTo.text,
+        sender: replyTo.sender,
+      };
+    }
+
     if (attachment) {
       const storageRef = ref(storage, uuid());
       const uploadTask = uploadBytesResumable(storageRef, attachment);
@@ -44,14 +64,12 @@ const Composebar = () => {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          // Observe state change events such as progress, pause, and resume
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
 
           if (progress === 100) {
             toast.success("Uploaded successfully", {
-              autoClose: 3000, // Adjust as needed
+              autoClose: 3000,
             });
           } else {
             toast.info("Uploading...", {
@@ -74,28 +92,16 @@ const Composebar = () => {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+            const messageWithImg = { ...newMessage, img: downloadURL };
             await updateDoc(doc(db, "chats", data.chatId), {
-              messages: arrayUnion({
-                id: uuid(),
-                text: inputText,
-                sender: currentUser.uid,
-                date: Timestamp.now(),
-                img: downloadURL,
-                read: false,
-              }),
+              messages: arrayUnion(messageWithImg),
             });
           });
         }
       );
     } else {
       await updateDoc(doc(db, "chats", data.chatId), {
-        messages: arrayUnion({
-          id: uuid(),
-          text: inputText,
-          sender: currentUser.uid,
-          date: Timestamp.now(),
-          read: false,
-        }),
+        messages: arrayUnion(newMessage),
       });
     }
 
@@ -118,6 +124,7 @@ const Composebar = () => {
     setInputText("");
     setAttachment(null);
     setAttachmentPreview(null);
+    setReplyTo(null); // Reset reply state after sending
   };
 
   const handleEdit = async () => {
@@ -125,7 +132,6 @@ const Composebar = () => {
       const messageID = editMsg.id;
       const chatRef = doc(db, "chats", data.chatId);
 
-      // Retrieve the chat document from Firestore
       const chatDoc = await getDoc(chatRef);
 
       if (attachment) {
@@ -135,8 +141,6 @@ const Composebar = () => {
         uploadTask.on(
           "state_changed",
           (snapshot) => {
-            // Observe state change events such as progress, pause, and resume
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
             const progress =
               (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             console.log("Upload is " + progress + "% done");
@@ -155,7 +159,6 @@ const Composebar = () => {
           () => {
             getDownloadURL(uploadTask.snapshot.ref).then(
               async (downloadURL) => {
-                // Create a new "messages" array that excludes the message with the matching ID
                 let updatedMessages = chatDoc.data().messages.map((message) => {
                   if (message.id === messageID) {
                     message.text = inputText;
@@ -173,7 +176,6 @@ const Composebar = () => {
           }
         );
       } else {
-        // Create a new "messages" array that excludes the message with the matching ID
         let updatedMessages = chatDoc.data().messages.map((message) => {
           if (message.id === messageID) {
             message.text = inputText;
@@ -201,51 +203,56 @@ const Composebar = () => {
 
   const handleTyping = async (event) => {
     setInputText(event.target.value);
-
-    // await updateDoc(doc(db, "chats", data.chatId), {
-    //   [`typing.${currentUser.uid}`]: true,
-    // });
-
-    // If the user was previously typing, clear the timeout
-    // if (typingTimeout) {
-    //   clearTimeout(typingTimeout);
-    // }
-
-    // // Set a new timeout for 1.5 seconds after the last keystroke
-    // typingTimeout = setTimeout(async () => {
-    //   // Send a typing indicator to other users indicating that this user has stopped typing
-    //   // console.log("User has stopped typing");
-
-    //   await updateDoc(doc(db, "chats", data.chatId), {
-    //     [`typing.${currentUser.uid}`]: false,
-    //   });
-
-    //   // Reset the timeout
-    //   typingTimeout = null;
-    // }, 100);
   };
 
   return (
-    <div className="flex items-center md:gap-2 grow">
-      <ToastMessage />
-      <input
-        type="text"
-        className="resize-none w-full h-10 outline-0 px-2 py-2 text-white bg-transparent text-sm placeholder:text-sm md:placeholder:text-base placeholder:text-c3 outline-none md:text-base"
-        placeholder="Type a message"
-        value={inputText}
-        onChange={handleTyping}
-        onKeyUp={onKeyUp}
-      />
-      <button
-        onClick={!editMsg ? handleSend : handleEdit}
-        className={`h-8 w-8 md:h-10 md:w-10 rounded-full md:rounded-xl shrink-0 flex justify-center items-center ${
-          inputText.trim().length > 0 ? "bg-c4" : ""
-        } ${attachment ? "bg-c4" : ""}`}
-        disabled={!inputText.trim() && !attachment}
-      >
-        <IoMdSend size={20} className="block md:hidden pl-0.5 text-white" />
-        <TbSend size={20} className="hidden md:block text-white" />
-      </button>
+    <div className="relative w-full">
+      {replyTo && (
+        <div className="absolute -top-11 -left-1 w-full md:-top-11 md:w-[99%] bg-gray-700 p-2 flex justify-between items-center rounded-t-md">
+          <span className="hidden md:block text-sm text-gray-300">
+            Replying to {users[replyTo.sender]?.displayName}:{" "}
+            {replyTo.text
+              ? replyTo.text.slice(0, 50) +
+                (replyTo.text.length > 50 ? "..." : "")
+              : "Image"}
+          </span>
+          <span className="md:hidden flex items-center gap-x-2 text-sm text-gray-300">
+            {/* Replying to {users[replyTo.sender]?.displayName}:{" "} */}
+            <RiReplyFill /> {users[replyTo.sender]?.displayName}:{" "}
+            {replyTo.text
+              ? replyTo.text.slice(0, 15) +
+                (replyTo.text.length > 15 ? "..." : "")
+              : "Image"}
+          </span>
+          <button
+            onClick={() => setReplyTo(null)}
+            className="text-gray-400 hover:text-white"
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
+      <div className="flex items-center md:gap-2 grow">
+        <ToastMessage />
+        <input
+          type="text"
+          className="resize-none w-full h-10 outline-0 px-2 py-2 text-white bg-transparent text-sm placeholder:text-sm md:placeholder:text-base placeholder:text-c3 outline-none md:text-base"
+          placeholder={replyTo ? "Type your reply..." : "Type a message"}
+          value={inputText}
+          onChange={handleTyping}
+          onKeyUp={onKeyUp}
+        />
+        <button
+          onClick={!editMsg ? handleSend : handleEdit}
+          className={`h-8 w-8 md:h-10 md:w-10 rounded-full md:rounded-xl shrink-0 flex justify-center items-center ${
+            inputText.trim().length > 0 ? "bg-c4" : ""
+          } ${attachment ? "bg-c4" : ""}`}
+          disabled={!inputText.trim() && !attachment}
+        >
+          <IoMdSend size={20} className="block md:hidden pl-0.5 text-white" />
+          <TbSend size={20} className="hidden md:block text-white" />
+        </button>
+      </div>
     </div>
   );
 };

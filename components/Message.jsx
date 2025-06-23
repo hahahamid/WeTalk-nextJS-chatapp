@@ -7,6 +7,7 @@ import { Timestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
 import { GoKebabHorizontal } from "react-icons/go";
+import { RiReplyFill } from "react-icons/ri";
 import Menu from "./Menu";
 import { DELETED_FOR_ME, DELETED_FOR_EVERYONE } from "@/utils/constants";
 import DeleteMessagePopup from "./popup/DeleteMessagePopup";
@@ -17,7 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const Message = ({ message }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const { users, data, setEditMsg, imageViewer, setImageViewer } =
+  const { users, data, setEditMsg, imageViewer, setImageViewer, setReplyTo } =
     useChatContext();
   const { currentUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -28,10 +29,8 @@ const Message = ({ message }) => {
       const messageID = message.id;
       const chatRef = doc(db, "chats", data.chatId);
 
-      // Retrieve the chat document from Firestore
       const chatDoc = await getDoc(chatRef);
 
-      // Create a new "messages" array that excludes the message with the matching ID
       const updatedMessages = chatDoc.data().messages.map((message) => {
         if (message.id === messageID) {
           if (action === DELETED_FOR_ME) {
@@ -60,9 +59,9 @@ const Message = ({ message }) => {
     setShowMenu(false);
   };
 
-  const self = message.sender === currentUser.uid; // Check if the message is sent by the current user
+  const self = message.sender === currentUser.uid;
   const ref = useRef();
-  const reactionMenuRef = useRef(); // Reference for the reaction menu
+  const reactionMenuRef = useRef();
 
   const isEdited = message.edited === true;
 
@@ -72,24 +71,20 @@ const Message = ({ message }) => {
   );
   const date = timestamp.toDate();
 
-  // Function to handle adding a reaction
   const handleReaction = async (emoji) => {
     try {
-      if (self) return; // Prevent reacting to self-messages
+      if (self) return;
 
       const messageID = message.id;
       const chatRef = doc(db, "chats", data.chatId);
 
-      // Retrieve the chat document from Firestore
       const chatDoc = await getDoc(chatRef);
       const messages = chatDoc.data().messages;
 
-      // Find the message and update its reactions
       const updatedMessages = messages.map((msg) => {
         if (msg.id === messageID) {
           const updatedReactions = { ...msg.reactions };
 
-          // Replace or add the user's reaction
           updatedReactions[currentUser.uid] = emoji;
 
           msg.reactions = updatedReactions;
@@ -97,7 +92,6 @@ const Message = ({ message }) => {
         return msg;
       });
 
-      // Update the chat document in Firestore
       await updateDoc(chatRef, { messages: updatedMessages });
     } catch (err) {
       console.error(err);
@@ -106,13 +100,11 @@ const Message = ({ message }) => {
     }
   };
 
-  // Helper function to extract the reaction for the current user
   const getUserReaction = () => {
     const reactions = message.reactions || {};
     return reactions[currentUser.uid];
   };
 
-  // Handle clicks outside the reaction menu
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -123,10 +115,8 @@ const Message = ({ message }) => {
       }
     };
 
-    // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
 
-    // Cleanup event listener
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -165,6 +155,14 @@ const Message = ({ message }) => {
         <div className="flex items-center relative gap-x-2 md:gap-x-5">
           {self && (
             <div className={`flex items-center relative`}>
+              {/* <button
+                className="text-c3 hover:text-white cursor-pointer"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                onClick={() => setReplyTo(message)}
+              >
+                <RiReplyFill />
+              </button> */}
+
               <button
                 className="text-c3 hover:text-white cursor-pointer"
                 style={{ WebkitTapHighlightColor: "transparent" }}
@@ -180,29 +178,46 @@ const Message = ({ message }) => {
                   showMenu={showMenu}
                   setShowDeletePopup={deletePopupHandler}
                   editMsg={() => setEditMsg(message)}
+                  replyTo={() => setReplyTo(message)}
                 />
               )}
             </div>
           )}
           <div
-            className={`group flex gap-2 md:gap-4 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl ${
+            className={`group flex flex-col gap-2 md:gap-2 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl ${
               self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
             }`}
           >
+            {message.quotedMessage && (
+              <div className="bg-c2 p-2 rounded-md text-xs">
+                <div className="font-bold">
+                  {users[message.quotedMessage.sender]?.displayName}
+                </div>
+                {/* <div className="line-clamp-1">{message.quotedMessage.text}</div> */}
+                <div className="line-clamp-1 w-full italic font-serif md:font-sans">
+                  {message.quotedMessage.text
+                    ? message.quotedMessage.text
+                    : "Image"}
+                </div>
+              </div>
+            )}
             {message.text && (
               <div
-                className="text-xs md:text-sm"
+                className={`text-xs md:text-sm ${
+                  message.quotedMessage ? "pl-1" : ""
+                }`}
                 dangerouslySetInnerHTML={{
                   __html: wrapEmojisInHtmlTag(message.text),
                 }}
               ></div>
             )}
 
-            {/* Display Reactions */}
             {Object.keys(message.reactions || {}).length > 0 && (
               <div
                 className={`absolute -bottom-2 ${
-                  self ? "bg-c5 border-c2 right-0.5 md:right-1" : "left-0.5 md:left-2 bg-c2 border-c1"
+                  self
+                    ? "bg-c5 border-c2 right-0.5 md:right-1"
+                    : "left-0.5 md:left-2 bg-c2 border-c1"
                 } rounded-full border-2  p-0.5 md:p-[1px] flex gap-2`}
               >
                 {Object.entries(message.reactions).map(([userId, emoji]) => (
@@ -222,7 +237,7 @@ const Message = ({ message }) => {
                   src={message.img}
                   width={250}
                   height={250}
-                  className="rounded-3xl max-w-[250px]"
+                  className="rounded-md max-w-[250px]"
                   alt="image"
                   onClick={() =>
                     setImageViewer({
@@ -245,9 +260,16 @@ const Message = ({ message }) => {
             )}
           </div>
 
-          {/* Reaction Button */}
           {!self && (
             <div className={`flex items-center relative gap-x-1 md:gap-x-2`}>
+              <button
+                className="text-c3 hover:text-white cursor-pointer"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                onClick={() => setReplyTo(message)}
+              >
+                <RiReplyFill />
+              </button>
+
               <button
                 className="text-c3 hover:text-white cursor-pointer"
                 style={{ WebkitTapHighlightColor: "transparent" }}
@@ -256,7 +278,6 @@ const Message = ({ message }) => {
                 <MdOutlineEmojiEmotions />
               </button>
 
-              {/* Reaction Menu with Smooth Animation */}
               <AnimatePresence>
                 {showReactionMenu && (
                   <motion.div
@@ -269,7 +290,7 @@ const Message = ({ message }) => {
                       self ? "left-0" : "right-1 md:-right-20"
                     } bg-opacity-50 backdrop-blur-md border border-white border-opacity-50 shadow-md rounded-full px-2 md:px-4 z-10`}
                     style={{
-                      boxShadow: "0 0 7px 2px rgba(0, 123, 255, 0.5)", // Glowing border effect
+                      boxShadow: "0 0 7px 2px rgba(0, 123, 255, 0.5)",
                     }}
                   >
                     <button
@@ -320,6 +341,7 @@ const Message = ({ message }) => {
                     showMenu={showMenu}
                     setShowDeletePopup={deletePopupHandler}
                     editMsg={() => setEditMsg(message)}
+                    replyTo={() => setReplyTo(message)}
                   />
                 )}
               </div>
