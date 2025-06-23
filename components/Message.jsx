@@ -194,7 +194,7 @@ const Message = ({ message }) => {
                   {users[message.quotedMessage.sender]?.displayName}
                 </div>
                 {/* <div className="line-clamp-1">{message.quotedMessage.text}</div> */}
-                <div className="line-clamp-1 w-full italic font-serif md:font-sans">
+                <div className="line-clamp-1 w-full italic">
                   {message.quotedMessage.text
                     ? message.quotedMessage.text
                     : "Image"}
