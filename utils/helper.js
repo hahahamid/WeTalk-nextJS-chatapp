@@ -24,3 +24,20 @@ export const wrapEmojisInHtmlTag = (messageText) => {
     return `<span style="font-size:1.5em;margin:0 2px;position:relative;top:2px">${match}</span>`;
   });
 };
+
+export function wrapAndLinkify(text) {
+  // 1) wrap emojis however you already do
+  const withEmojis = wrapEmojisInHtmlTag(text);
+
+  // 2) regex to find URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // ensure safe new‐tab links
+  return withEmojis.replace(urlRegex, (url) => {
+    return `<a
+      href="${url}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-blue-500 underline underline-offset-2"
+    >${url}</a>`;
+  });
+}

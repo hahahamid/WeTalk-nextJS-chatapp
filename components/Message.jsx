@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useChatContext } from "@/context/chatContext";
 import { useAuth } from "@/context/authContext";
 import Avatar from "./Avatar";
-import { formatDate, wrapEmojisInHtmlTag } from "@/utils/helper";
+import { formatDate, wrapAndLinkify } from "@/utils/helper";
 import { Timestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 
@@ -207,7 +207,7 @@ const Message = ({ message }) => {
                   message.quotedMessage ? "pl-1" : ""
                 }`}
                 dangerouslySetInnerHTML={{
-                  __html: wrapEmojisInHtmlTag(message.text),
+                  __html: wrapAndLinkify(message.text),
                 }}
               ></div>
             )}
