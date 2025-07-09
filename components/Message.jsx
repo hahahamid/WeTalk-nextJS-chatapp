@@ -310,6 +310,13 @@ const Message = ({ message }) => {
                     <button
                       className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
                       style={{ WebkitTapHighlightColor: "transparent" }}
+                      onClick={() => handleReaction("😂")}
+                    >
+                      😂
+                    </button>
+                    <button
+                      className="p-1 md:p-2 hover:scale-125 transition duration-200 ease-in-out rounded-full text-lg"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
                       onClick={() => handleReaction("❤️")}
                     >
                       ❤️
