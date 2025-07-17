@@ -15,6 +15,7 @@ import ImageViewer from "react-simple-image-viewer";
 import Image from "next/image";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
+import VoiceMessagePlayer from "./VoiceMessagePlayer";
 
 const Message = ({ message }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -257,6 +258,16 @@ const Message = ({ message }) => {
                   />
                 )}
               </>
+            )}
+
+            {message.voice && (
+              <div className=" max-w-[340px]">
+                <VoiceMessagePlayer
+                  src={message.voice}
+                  color={self ? "#24a0ed" : "#b5b5b5"} // blue for self, gray for received
+                  bubbleClass={self ? "bg-c5" : "bg-c1"} // match your bubble color classes
+                />
+              </div>
             )}
           </div>
 
