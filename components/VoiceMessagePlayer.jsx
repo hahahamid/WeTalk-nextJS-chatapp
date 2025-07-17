@@ -12,7 +12,12 @@ function getDummyWaveform() {
   return arr;
 }
 
-const VoiceMessagePlayer = ({ src, color = "#24a0ed", bubbleClass }) => {
+const VoiceMessagePlayer = ({
+  src,
+  color = "#24a0ed",
+  bubbleClass,
+  target,
+}) => {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -101,20 +106,25 @@ const VoiceMessagePlayer = ({ src, color = "#24a0ed", bubbleClass }) => {
             <FaPlay className="text-sm ml-0.5" style={{ color }} />
           )}
         </button>
+
         <div className="flex-grow relative">
           {/* Progress bar */}
-          <div
-            className="h-1 bg-gray-200 rounded"
-            style={{ width: 120, minWidth: 80, marginBottom: 4 }}
-          >
+
+          {target !== "composebar" && (
             <div
-              className="h-1 rounded"
-              style={{
-                width: `${progress}%`,
-                background: color,
-              }}
-            />
-          </div>
+              className="h-1 bg-gray-200 rounded"
+              style={{ width: 120, minWidth: 80, marginBottom: 4 }}
+            >
+              <div
+                className="h-1 rounded"
+                style={{
+                  width: `${progress}%`,
+                  background: color,
+                }}
+              />
+            </div>
+          )}
+
           {/* Animated Dummy Waveform */}
           <svg width={120} height={18} style={{ display: "block" }}>
             {animatedBars.map((amp, i) => (
