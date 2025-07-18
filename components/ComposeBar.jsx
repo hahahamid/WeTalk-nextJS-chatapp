@@ -193,6 +193,74 @@ const Composebar = () => {
     setRecording(false);
   };
 
+  const handleEdit = async () => {
+    try {
+      const messageID = editMsg.id;
+      const chatRef = doc(db, "chats", data.chatId);
+
+      const chatDoc = await getDoc(chatRef);
+
+      if (attachment) {
+        const storageRef = ref(storage, uuid());
+        const uploadTask = uploadBytesResumable(storageRef, attachment);
+
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            console.error(error);
+          },
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then(
+              async (downloadURL) => {
+                let updatedMessages = chatDoc.data().messages.map((message) => {
+                  if (message.id === messageID) {
+                    message.text = inputText;
+                    message.img = downloadURL;
+                    message.alt = downloadURL;
+                  }
+                  return message;
+                });
+
+                await updateDoc(chatRef, {
+                  messages: updatedMessages,
+                });
+              }
+            );
+          }
+        );
+      } else {
+        let updatedMessages = chatDoc.data().messages.map((message) => {
+          if (message.id === messageID) {
+            message.text = inputText;
+            message.edited = true;
+          }
+          return message;
+        });
+        await updateDoc(chatRef, { messages: updatedMessages });
+      }
+
+      setInputText("");
+      setAttachment(null);
+      setAttachmentPreview(null);
+      setEditMsg(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const onKeyUp = (event) => {
     if (
       event.key === "Enter" &&
