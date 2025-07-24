@@ -198,7 +198,7 @@ const Message = ({ message }) => {
                 <div className="line-clamp-1 w-full italic">
                   {message.quotedMessage.text
                     ? message.quotedMessage.text
-                    : "Image"}
+                    : "Attachment"}
                 </div>
               </div>
             )}
