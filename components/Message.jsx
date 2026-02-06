@@ -135,7 +135,7 @@ const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
           ? "mb-5"
           : Object.keys(message.reactions || {}).length > 0
           ? "mb-3 md:mb-5"
-          : "mb-[1px] md:mb-5"
+          : "mb-[3px] md:mb-5"
       } max-w-[100%] md:max-w-[75%] break-words ${
         self ? "self-end" : ""
       }`}
