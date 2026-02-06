@@ -101,16 +101,28 @@ const Messages = () => {
           <Spinner />
         </div>
       )}
-      {messages
-        ?.filter(
+      {(() => {
+        const filtered = messages?.filter(
           (m) =>
             m?.deletedInfo?.[currentUser.uid] !== DELETED_FOR_ME &&
             !m?.deletedInfo?.deletedForEveryone &&
             !m?.deleteChatInfo?.[currentUser.uid]
-        )
-        ?.map((m) => {
-          return <Message message={m} key={m.id} />;
-        })}
+        );
+        return filtered?.map((m, idx) => {
+          const prevMsg = idx > 0 ? filtered[idx - 1] : null;
+          const nextMsg = idx < filtered.length - 1 ? filtered[idx + 1] : null;
+          const isFirstInGroup = !prevMsg || prevMsg.sender !== m.sender;
+          const isLastInGroup = !nextMsg || nextMsg.sender !== m.sender;
+          return (
+            <Message
+              message={m}
+              key={m.id}
+              isFirstInGroup={isFirstInGroup}
+              isLastInGroup={isLastInGroup}
+            />
+          );
+        });
+      })()}
     </div>
   );
 };
