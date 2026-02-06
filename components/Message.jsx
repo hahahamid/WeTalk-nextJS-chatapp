@@ -17,7 +17,7 @@ import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 
-const Message = ({ message }) => {
+const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const { users, data, setEditMsg, imageViewer, setImageViewer, setReplyTo } =
     useChatContext();
@@ -86,7 +86,11 @@ const Message = ({ message }) => {
         if (msg.id === messageID) {
           const updatedReactions = { ...msg.reactions };
 
-          updatedReactions[currentUser.uid] = emoji;
+          if (updatedReactions[currentUser.uid] === emoji) {
+            delete updatedReactions[currentUser.uid];
+          } else {
+            updatedReactions[currentUser.uid] = emoji;
+          }
 
           msg.reactions = updatedReactions;
         }
@@ -126,7 +130,13 @@ const Message = ({ message }) => {
   return (
     <div
       ref={ref}
-      className={`mb-5 max-w-[100%] md:max-w-[75%] break-words ${
+      className={`${
+        isLastInGroup
+          ? "mb-5"
+          : Object.keys(message.reactions || {}).length > 0
+          ? "mb-3 md:mb-5"
+          : "mb-[1px] md:mb-5"
+      } max-w-[100%] md:max-w-[75%] break-words ${
         self ? "self-end" : ""
       }`}
     >
@@ -141,9 +151,9 @@ const Message = ({ message }) => {
         />
       )}
       <div
-        className={`flex items-end gap-3 mb-1 ${
-          self ? "justify-start flex-row-reverse" : ""
-        }`}
+        className={`flex items-end gap-3 ${
+          isLastInGroup ? "mb-1" : "mb-0 md:mb-1"
+        } ${self ? "justify-start flex-row-reverse" : ""}`}
       >
         <div className="hidden md:block ">
           <Avatar
@@ -187,6 +197,18 @@ const Message = ({ message }) => {
           <div
             className={`group flex flex-col gap-2 md:gap-2 px-3 py-3 md:px-4 md:py-3 rounded-xl md:rounded-3xl ${
               self ? "rounded-br-md bg-c5" : "rounded-bl-md bg-c1"
+            } ${
+              // Mobile-only grouped bubble radius adjustments (WhatsApp style)
+              // First in group: round top, flatten bottom
+              // Middle: flatten all corners
+              // Last in group: flatten top, keep bottom rounded (with tail)
+              !isFirstInGroup && !isLastInGroup
+                ? "max-md:rounded-tl-[5px] max-md:rounded-tr-[5px] max-md:rounded-bl-[5px] max-md:rounded-br-[5px]"
+                : !isLastInGroup
+                ? "max-md:rounded-bl-[5px] max-md:rounded-br-[5px]"
+                : !isFirstInGroup
+                ? "max-md:rounded-tl-[5px] max-md:rounded-tr-[5px]"
+                : ""
             }`}
           >
             {message.quotedMessage && (
@@ -372,7 +394,7 @@ const Message = ({ message }) => {
           self
             ? "justify-start flex-row-reverse mr-1 md:mr-12"
             : "ml-1 md:ml-12"
-        }`}
+        } ${!isLastInGroup ? "hidden md:flex" : ""}`}
       >
         <div className="text-[10px] md:text-xs text-c3">{formatDate(date)}</div>
       </div>

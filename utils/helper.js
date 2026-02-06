@@ -19,9 +19,16 @@ export const formatDate = (date) => {
 };
 
 export const wrapEmojisInHtmlTag = (messageText) => {
-  const regexEmoji = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu; // regex to match all Unicode emojis
+  // Comprehensive emoji regex that handles:
+  // - Flag sequences (regional indicator pairs)
+  // - Keycap sequences (digit + VS16 + combining enclosing keycap)
+  // - ZWJ sequences (family, profession, etc.)
+  // - Skin tone modifier sequences
+  // - Basic emoji presentation sequences
+  const regexEmoji =
+    /\p{RI}\p{RI}|[\d#*]\uFE0F\u20E3|(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?(?:\u200D(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier})?)*/gu;
   return messageText.replace(regexEmoji, (match) => {
-    return `<span style="font-size:1.5em;margin:0 2px;position:relative;top:2px">${match}</span>`;
+    return `<span style="font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-size:1.5em;margin:0 2px;position:relative;top:2px">${match}</span>`;
   });
 };
 
