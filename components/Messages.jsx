@@ -94,6 +94,34 @@ const Messages = () => {
     chatContainer.scrollTop = chatContainer.scrollHeight;
   };
 
+  const getMessageDate = (msg) => {
+    if (!msg?.date) return null;
+    if (typeof msg.date.toDate === "function") return msg.date.toDate();
+    if (typeof msg.date.seconds === "number") return new Date(msg.date.seconds * 1000);
+    return null;
+  };
+
+  const isSameDay = (msgA, msgB) => {
+    const dateA = getMessageDate(msgA);
+    const dateB = getMessageDate(msgB);
+    if (!dateA || !dateB) return false;
+    return (
+      dateA.getFullYear() === dateB.getFullYear() &&
+      dateA.getMonth() === dateB.getMonth() &&
+      dateA.getDate() === dateB.getDate()
+    );
+  };
+
+  const formatDayLabel = (msg) => {
+    const date = getMessageDate(msg);
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "2-digit",
+    });
+  };
+
   return (
     <div ref={ref} className="grow pt-5 md:pt-0 md:px-5 md:py-5 overflow-auto scrollbar flex flex-col">
       {isLoadingMore && (
@@ -111,15 +139,24 @@ const Messages = () => {
         return filtered?.map((m, idx) => {
           const prevMsg = idx > 0 ? filtered[idx - 1] : null;
           const nextMsg = idx < filtered.length - 1 ? filtered[idx + 1] : null;
-          const isFirstInGroup = !prevMsg || prevMsg.sender !== m.sender;
-          const isLastInGroup = !nextMsg || nextMsg.sender !== m.sender;
+          const showDateLabel = !prevMsg || !isSameDay(prevMsg, m);
+          const isFirstInGroup =
+            !prevMsg || prevMsg.sender !== m.sender || !isSameDay(prevMsg, m);
+          const isLastInGroup =
+            !nextMsg || nextMsg.sender !== m.sender || !isSameDay(nextMsg, m);
           return (
-            <Message
-              message={m}
-              key={m.id}
-              isFirstInGroup={isFirstInGroup}
-              isLastInGroup={isLastInGroup}
-            />
+            <React.Fragment key={m.id}>
+              {showDateLabel && (
+                <div className="md:hidden text-c3 text-xs text-center mt-1 mb-2">
+                  {formatDayLabel(m)}
+                </div>
+              )}
+              <Message
+                message={m}
+                isFirstInGroup={isFirstInGroup}
+                isLastInGroup={isLastInGroup}
+              />
+            </React.Fragment>
           );
         });
       })()}
