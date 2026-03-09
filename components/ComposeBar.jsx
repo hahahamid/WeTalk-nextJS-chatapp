@@ -1,6 +1,6 @@
 import { useChatContext } from "@/context/chatContext";
 import { useAuth } from "@/context/authContext";
-import { db, storage } from "@/firebase/firebase";
+import { db } from "@/firebase/firebase";
 import ToastMessage from "@/components/ToastMessage";
 import { FaTimes } from "react-icons/fa";
 import { RiReplyFill } from "react-icons/ri";
@@ -14,7 +14,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { uploadToCloudinary } from "@/utils/helper";
 import { TbSend } from "react-icons/tb";
 import { toast } from "react-toastify";
 import { useState, useRef, useEffect } from "react";
@@ -103,37 +103,17 @@ const Composebar = () => {
 
     // Handle photo attachment
     if (attachment) {
-      const storageRef = ref(storage, uuid());
-      const uploadTask = uploadBytesResumable(storageRef, attachment);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-          if (progress === 100) {
-            toast.success("Uploaded successfully", {
-              autoClose: 3000,
-            });
-          } else {
-            toast.info("Uploading...", {
-              autoClose: 1000,
-            });
-          }
-        },
-        (error) => {
-          console.error(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-            const msg = { ...newMessage, img: downloadURL };
-            await updateDoc(doc(db, "chats", data.chatId), {
-              messages: arrayUnion(msg),
-            });
-          });
-        }
-      );
+      toast.info("Uploading...", { autoClose: 1000 });
+      try {
+        const downloadURL = await uploadToCloudinary(attachment);
+        toast.success("Uploaded successfully", { autoClose: 3000 });
+        const msg = { ...newMessage, img: downloadURL };
+        await updateDoc(doc(db, "chats", data.chatId), {
+          messages: arrayUnion(msg),
+        });
+      } catch (error) {
+        console.error(error);
+      }
       resetFields();
       return;
     }
@@ -150,41 +130,20 @@ const Composebar = () => {
         _chatId: data.chatId,
       });
 
-      const audioStorageRef = ref(storage, uuid());
-      const uploadTask = uploadBytesResumable(audioStorageRef, audioBlob);
-
-      uploadTask.on(
-        "state_changed",
-        null,
-        (error) => {
-          console.error(error);
-          updateLocalMessage(newMessage.id, {
-            _failed: true,
-            _uploading: false,
+      uploadToCloudinary(audioBlob)
+        .then(async (downloadURL) => {
+          const msg = { ...newMessage, type: "voice", voice: downloadURL };
+          await updateDoc(doc(db, "chats", data.chatId), {
+            messages: arrayUnion(msg),
           });
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
+        })
+        .catch((error) => {
+          console.error(error);
+          updateLocalMessage(newMessage.id, { _failed: true, _uploading: false });
           toast.error("Voice upload failed. Tap to retry.");
-        },
-        async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            const msg = {
-              ...newMessage,
-              type: "voice",
-              voice: downloadURL,
-            };
-            await updateDoc(doc(db, "chats", data.chatId), {
-              messages: arrayUnion(msg),
-            });
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
-          } catch (err) {
-            console.error(err);
-            updateLocalMessage(newMessage.id, {
-              _failed: true,
-              _uploading: false,
-            });
-          }
-        }
-      );
+        });
+
       resetFields();
       return;
     }
@@ -227,46 +186,20 @@ const Composebar = () => {
       const chatDoc = await getDoc(chatRef);
 
       if (attachment) {
-        const storageRef = ref(storage, uuid());
-        const uploadTask = uploadBytesResumable(storageRef, attachment);
-
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log("Upload is " + progress + "% done");
-            switch (snapshot.state) {
-              case "paused":
-                console.log("Upload is paused");
-                break;
-              case "running":
-                console.log("Upload is running");
-                break;
+        try {
+          const downloadURL = await uploadToCloudinary(attachment);
+          let updatedMessages = chatDoc.data().messages.map((message) => {
+            if (message.id === messageID) {
+              message.text = inputText;
+              message.img = downloadURL;
+              message.alt = downloadURL;
             }
-          },
-          (error) => {
-            console.error(error);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then(
-              async (downloadURL) => {
-                let updatedMessages = chatDoc.data().messages.map((message) => {
-                  if (message.id === messageID) {
-                    message.text = inputText;
-                    message.img = downloadURL;
-                    message.alt = downloadURL;
-                  }
-                  return message;
-                });
-
-                await updateDoc(chatRef, {
-                  messages: updatedMessages,
-                });
-              }
-            );
-          }
-        );
+            return message;
+          });
+          await updateDoc(chatRef, { messages: updatedMessages });
+        } catch (error) {
+          console.error(error);
+        }
       } else {
         let updatedMessages = chatDoc.data().messages.map((message) => {
           if (message.id === messageID) {

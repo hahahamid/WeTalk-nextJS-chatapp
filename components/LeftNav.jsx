@@ -13,12 +13,12 @@ import { PiChats } from "react-icons/pi";
 import UsersPopup from "./popup/UsersPopup";
 import { profileColors } from "@/utils/constants";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth, storage } from "@/firebase/firebase";
+import { db, auth } from "@/firebase/firebase";
 import { useChatContext } from "@/context/chatContext";
 import ToastMessage from "./ToastMessage";
 import { toast } from "react-toastify";
 import { updateProfile } from "firebase/auth";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { uploadToCloudinary } from "@/utils/helper";
 import RecentChatsPopup from "./popup/RecentChatsPopup";
 
 const LeftNav = () => {
@@ -88,25 +88,9 @@ const LeftNav = () => {
   const uploadImageToFirebase = async (file) => {
     try {
       if (file) {
-        const storageRef = ref(storage, currentUser.displayName);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {},
-          (error) => {
-            console.error(error);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then(
-              async (downloadURL) => {
-                handleUpdateProfile("photo", downloadURL);
-                await updateProfile(authUser, {
-                  photoURL: downloadURL,
-                });
-              }
-            );
-          }
-        );
+        const downloadURL = await uploadToCloudinary(file);
+        handleUpdateProfile("photo", downloadURL);
+        await updateProfile(authUser, { photoURL: downloadURL });
       }
     } catch (error) {
       console.error(error);

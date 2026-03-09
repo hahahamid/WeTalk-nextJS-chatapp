@@ -1,4 +1,20 @@
 import moment from "moment";
+
+const CLOUDINARY_CLOUD = "dfudfhihs";
+const CLOUDINARY_PRESET = "chat_app";
+
+export const uploadToCloudinary = async (blob) => {
+  const formData = new FormData();
+  formData.append("file", blob);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`,
+    { method: "POST", body: formData }
+  );
+  if (!res.ok) throw new Error("Cloudinary upload failed");
+  const data = await res.json();
+  return data.secure_url;
+};
 export const formatDate = (date) => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
