@@ -6,7 +6,7 @@ export const config = {
   },
 };
 
-const ALLOWED_HOST = "firebasestorage.googleapis.com";
+const ALLOWED_HOSTS = ["firebasestorage.googleapis.com", "res.cloudinary.com"];
 
 function streamFromUrl(targetUrl, res, redirectsLeft = 5) {
   const request = get(targetUrl, (upstream) => {
@@ -75,7 +75,7 @@ export default function handler(req, res) {
     return;
   }
 
-  if (parsed.hostname !== ALLOWED_HOST) {
+  if (!ALLOWED_HOSTS.includes(parsed.hostname)) {
     res.status(403).json({ error: "URL not allowed" });
     return;
   }
