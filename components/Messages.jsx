@@ -15,7 +15,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [allMessages, setAllMessages] = useState([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const { data } = useChatContext();
+  const { data, localMessages, removeLocalMessage } = useChatContext();
   const { currentUser } = useAuth();
   const ref = useRef();
 
@@ -39,10 +39,14 @@ const Messages = () => {
         const allMsgs = doc.data().messages || [];
         setAllMessages(allMsgs);
 
-        // Update messages only if new messages are added
         if (allMsgs.length !== allMessages.length) {
           setMessages(allMsgs.slice(-100));
         }
+
+        const firestoreIds = new Set(allMsgs.map((m) => m.id));
+        localMessages.forEach((lm) => {
+          if (firestoreIds.has(lm.id)) removeLocalMessage(lm.id);
+        });
       }
       setTimeout(() => {
         scrollToBottom();
@@ -130,12 +134,17 @@ const Messages = () => {
         </div>
       )}
       {(() => {
-        const filtered = messages?.filter(
+        const firestoreFiltered = messages?.filter(
           (m) =>
             m?.deletedInfo?.[currentUser.uid] !== DELETED_FOR_ME &&
             !m?.deletedInfo?.deletedForEveryone &&
             !m?.deleteChatInfo?.[currentUser.uid]
         );
+        const firestoreIds = new Set(firestoreFiltered.map((m) => m.id));
+        const pendingLocal = localMessages.filter(
+          (m) => !firestoreIds.has(m.id)
+        );
+        const filtered = [...firestoreFiltered, ...pendingLocal];
         return filtered?.map((m, idx) => {
           const prevMsg = idx > 0 ? filtered[idx - 1] : null;
           const nextMsg = idx < filtered.length - 1 ? filtered[idx + 1] : null;

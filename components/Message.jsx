@@ -19,7 +19,7 @@ import VoiceMessagePlayer from "./VoiceMessagePlayer";
 
 const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const { users, data, setEditMsg, imageViewer, setImageViewer, setReplyTo } =
+  const { users, data, setEditMsg, imageViewer, setImageViewer, setReplyTo, retryVoiceUpload } =
     useChatContext();
   const { currentUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -283,12 +283,21 @@ const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
             )}
 
             {message.voice && (
-              <div className=" max-w-[340px]">
+              <div className="relative max-w-[340px]">
                 <VoiceMessagePlayer
                   src={message.voice}
-                  color={self ? "#24a0ed" : "#b5b5b5"} // blue for self, gray for received
-                  bubbleClass={self ? "bg-c5" : "bg-c1"} // match your bubble color classes
+                  color={self ? "#24a0ed" : "#b5b5b5"}
+                  bubbleClass={self ? "bg-c5" : "bg-c1"}
                 />
+                {message._failed && (
+                  <button
+                    onClick={() => retryVoiceUpload(message.id)}
+                    className="flex items-center gap-1 mt-1 text-[10px] text-red-400 hover:text-red-300 cursor-pointer"
+                  >
+                    <span className="text-sm">⟳</span>
+                    Failed — tap to retry
+                  </button>
+                )}
               </div>
             )}
           </div>

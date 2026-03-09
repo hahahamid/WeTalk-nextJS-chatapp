@@ -4,8 +4,19 @@ import {
   useState,
   useEffect,
   useReducer,
+  useCallback,
 } from "react";
 import { useAuth } from "@/context/authContext";
+import { db, storage } from "@/firebase/firebase";
+import {
+  arrayUnion,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { v4 as uuid } from "uuid";
+import { toast } from "react-toastify";
 
 const ChatContext = createContext();
 
@@ -22,6 +33,62 @@ export const ChatContextProvider = ({ children }) => {
   const [isTyping, setIsTyping] = useState(null);
   const [imageViewer, setImageViewer] = useState(null); 
   const [replyTo, setReplyTo] = useState(null); // Added for reply functionality
+  const [localMessages, setLocalMessages] = useState([]);
+
+  const addLocalMessage = (msg) =>
+    setLocalMessages((prev) => [...prev, msg]);
+
+  const removeLocalMessage = (id) =>
+    setLocalMessages((prev) => prev.filter((m) => m.id !== id));
+
+  const updateLocalMessage = (id, updates) =>
+    setLocalMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...updates } : m))
+    );
+
+  const retryVoiceUpload = useCallback((messageId) => {
+    setLocalMessages((prev) => {
+      const msg = prev.find((m) => m.id === messageId);
+      if (!msg || !msg._blob || msg._uploading) return prev;
+
+      const audioStorageRef = ref(storage, uuid());
+      const uploadTask = uploadBytesResumable(audioStorageRef, msg._blob);
+
+      uploadTask.on(
+        "state_changed",
+        null,
+        (error) => {
+          console.error(error);
+          updateLocalMessage(messageId, { _failed: true, _uploading: false });
+          toast.error("Voice upload failed. Tap to retry.");
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const chatId = msg._chatId;
+
+            const chatDoc = await getDoc(doc(db, "chats", chatId));
+            const existing = chatDoc.data()?.messages || [];
+            const alreadySent = existing.some((m) => m.id === messageId);
+            if (alreadySent) return;
+
+            const { _blob, _uploading, _failed, _chatId, ...cleanMsg } = msg;
+            await updateDoc(doc(db, "chats", chatId), {
+              messages: arrayUnion({ ...cleanMsg, voice: downloadURL }),
+            });
+            setTimeout(() => URL.revokeObjectURL(msg.voice), 120000);
+          } catch (err) {
+            console.error(err);
+            updateLocalMessage(messageId, { _failed: true, _uploading: false });
+          }
+        }
+      );
+
+      return prev.map((m) =>
+        m.id === messageId ? { ...m, _uploading: true, _failed: false } : m
+      );
+    });
+  }, []);
 
   const resetFooterStates = () => {
     setInputText("");
@@ -81,7 +148,12 @@ export const ChatContextProvider = ({ children }) => {
         imageViewer,
         setImageViewer,
         replyTo,
-        setReplyTo, // Provide reply state to components
+        setReplyTo,
+        localMessages,
+        addLocalMessage,
+        removeLocalMessage,
+        updateLocalMessage,
+        retryVoiceUpload,
       }}
     >
       {children}
