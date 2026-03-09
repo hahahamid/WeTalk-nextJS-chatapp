@@ -13,6 +13,7 @@ function getDummyWaveform() {
 
 function toProxyUrl(src) {
   if (!src || src.startsWith("blob:") || src.startsWith("data:")) return src;
+  if (src.includes("res.cloudinary.com")) return src;
   return `/api/audio-proxy?url=${encodeURIComponent(src)}`;
 }
 
