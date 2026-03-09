@@ -158,7 +158,7 @@ const VoiceMessagePlayer = ({
         <button
           onClick={togglePlay}
           disabled={loading}
-          className="h-8 w-8 rounded-full flex items-center justify-center shadow bg-white"
+          className="h-8 w-8 rounded-full flex items-center justify-center shadow bg-white relative z-10"
         >
           {loading ? (
             <span
