@@ -38,6 +38,9 @@ const Composebar = () => {
     replyTo,
     setReplyTo,
     users,
+    addLocalMessage,
+    removeLocalMessage,
+    updateLocalMessage,
   } = useChatContext();
 
   // Voice note state
@@ -137,26 +140,49 @@ const Composebar = () => {
 
     // ----- Handle voice note ----
     if (audioBlob) {
-      const audioRef = ref(storage, uuid());
-      const uploadTask = uploadBytesResumable(audioRef, audioBlob);
+      const blobUrl = URL.createObjectURL(audioBlob);
+      addLocalMessage({
+        ...newMessage,
+        type: "voice",
+        voice: blobUrl,
+        _uploading: true,
+        _blob: audioBlob,
+        _chatId: data.chatId,
+      });
+
+      const audioStorageRef = ref(storage, uuid());
+      const uploadTask = uploadBytesResumable(audioStorageRef, audioBlob);
 
       uploadTask.on(
         "state_changed",
         null,
         (error) => {
           console.error(error);
-          toast.error("Voice upload failed.");
+          updateLocalMessage(newMessage.id, {
+            _failed: true,
+            _uploading: false,
+          });
+          toast.error("Voice upload failed. Tap to retry.");
         },
         async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          const msg = {
-            ...newMessage,
-            type: "voice",
-            voice: downloadURL,
-          };
-          await updateDoc(doc(db, "chats", data.chatId), {
-            messages: arrayUnion(msg),
-          });
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const msg = {
+              ...newMessage,
+              type: "voice",
+              voice: downloadURL,
+            };
+            await updateDoc(doc(db, "chats", data.chatId), {
+              messages: arrayUnion(msg),
+            });
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
+          } catch (err) {
+            console.error(err);
+            updateLocalMessage(newMessage.id, {
+              _failed: true,
+              _uploading: false,
+            });
+          }
         }
       );
       resetFields();
