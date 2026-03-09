@@ -62,10 +62,12 @@ const VoiceMessagePlayer = ({
       setProgress((audio.currentTime / audio.duration) * 100 || 0);
     const onEnded = () => {
       setPlaying(false);
+      setLoading(false);
       setProgress(0);
       applyPendingSrc();
     };
     const onPause = () => {
+      setLoading(false);
       applyPendingSrc();
     };
     const onPlaying = () => {
@@ -76,11 +78,16 @@ const VoiceMessagePlayer = ({
       setLoading(false);
     };
     const onWaiting = () => setLoading(true);
+    const onError = () => {
+      setPlaying(false);
+      setLoading(false);
+    };
 
     const onOtherPlay = (e) => {
       if (e.detail !== audio && !audio.paused) {
         audio.pause();
         setPlaying(false);
+        setLoading(false);
       }
     };
 
@@ -90,6 +97,7 @@ const VoiceMessagePlayer = ({
     audio.addEventListener("pause", onPause);
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("waiting", onWaiting);
+    audio.addEventListener("error", onError);
     window.addEventListener("voice-play", onOtherPlay);
 
     return () => {
@@ -99,6 +107,7 @@ const VoiceMessagePlayer = ({
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("error", onError);
       window.removeEventListener("voice-play", onOtherPlay);
     };
   }, []);
