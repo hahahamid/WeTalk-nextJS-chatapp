@@ -226,7 +226,7 @@ const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
             )}
             {message.text && (
               <div
-                className={`text-xs md:text-sm ${
+                className={`text-xs md:text-sm [overflow-wrap:anywhere] ${
                   message.quotedMessage ? "pl-1" : ""
                 }`}
                 dangerouslySetInnerHTML={{
@@ -260,7 +260,7 @@ const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
                   src={message.img}
                   width={250}
                   height={250}
-                  className="rounded-md max-w-[250px]"
+                  className="rounded-md w-full h-auto max-w-[250px]"
                   alt="image"
                   onClick={() =>
                     setImageViewer({
