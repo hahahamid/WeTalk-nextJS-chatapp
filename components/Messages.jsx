@@ -18,6 +18,9 @@ const Messages = () => {
   const { data, localMessages, removeLocalMessage } = useChatContext();
   const { currentUser } = useAuth();
   const ref = useRef();
+  // Tracks whether the user is reading the latest messages. Used to decide
+  // if late-loading media is allowed to re-pin the view to the bottom.
+  const isNearBottomRef = useRef(true);
 
   useEffect(() => {
     const fetchMessagesFromCache = async () => {
@@ -59,6 +62,12 @@ const Messages = () => {
     const chatContainer = ref.current;
 
     const handleScroll = () => {
+      isNearBottomRef.current =
+        chatContainer.scrollHeight -
+          chatContainer.scrollTop -
+          chatContainer.clientHeight <
+        120;
+
       if (
         chatContainer.scrollTop === 0 &&
         messages.length === 100 &&
@@ -92,6 +101,23 @@ const Messages = () => {
       chatContainer.removeEventListener("scroll", handleScroll);
     };
   }, [messages, allMessages, isLoadingMore]);
+
+  // Images and voice notes resolve after the initial scroll, which changes the
+  // content height and leaves the user parked above the latest message.
+  // `load` doesn't bubble from media elements, so listen in the capture phase.
+  useEffect(() => {
+    const chatContainer = ref.current;
+    if (!chatContainer) return;
+
+    const handleMediaLoad = () => {
+      if (isNearBottomRef.current) scrollToBottom();
+    };
+
+    chatContainer.addEventListener("load", handleMediaLoad, true);
+    return () => {
+      chatContainer.removeEventListener("load", handleMediaLoad, true);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     const chatContainer = ref.current;

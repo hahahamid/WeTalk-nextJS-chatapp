@@ -260,7 +260,7 @@ const Message = ({ message, isFirstInGroup = true, isLastInGroup = true }) => {
                   src={message.img}
                   width={250}
                   height={250}
-                  className="rounded-md w-full h-auto max-w-[250px]"
+                  className="rounded-md w-[250px] max-w-full h-auto"
                   alt="image"
                   onClick={() =>
                     setImageViewer({
