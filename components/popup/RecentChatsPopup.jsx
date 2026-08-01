@@ -125,13 +125,12 @@ const RecentChatsPopup = (props) => {
 
   const filteredChats = Object.entries(chats || {})
     .filter(([, chat]) => !chat?.hasOwnProperty("chatDeleted"))
-    .filter(
-      ([, chat]) =>
-        chat?.userInfo?.displayName
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        chat?.lastMessage?.text.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter(([, chat]) => {
+      const term = search.toLowerCase();
+      const name = (chat?.userInfo?.displayName || "").toLowerCase();
+      const preview = (chat?.lastMessage?.text || "").toLowerCase();
+      return name.includes(term) || preview.includes(term);
+    })
     .sort((a, b) => b[1].date - a[1].date);
 
   const readChat = async (chatId) => {

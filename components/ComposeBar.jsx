@@ -84,6 +84,21 @@ const Composebar = () => {
     setRecording(false);
   };
 
+  // Mirrors the newest message into both participants' userChats entries, which
+  // is what the sidebar renders as the conversation preview and sorts by.
+  // Every send path must call this or the preview silently goes stale.
+  const updateChatPreview = async (preview) => {
+    await updateDoc(doc(db, "userChats", currentUser.uid), {
+      [data.chatId + ".lastMessage"]: preview,
+      [data.chatId + ".date"]: serverTimestamp(),
+    });
+    await updateDoc(doc(db, "userChats", data.user.uid), {
+      [data.chatId + ".lastMessage"]: preview,
+      [data.chatId + ".date"]: serverTimestamp(),
+      [data.chatId + ".chatDeleted"]: deleteField(),
+    });
+  };
+
   // ---- Send Handler (supports text/img/audio) ----
   const handleSend = async () => {
     const newMessage = {
@@ -111,6 +126,7 @@ const Composebar = () => {
         await updateDoc(doc(db, "chats", data.chatId), {
           messages: arrayUnion(msg),
         });
+        await updateChatPreview({ text: inputText, img: true });
       } catch (error) {
         console.error(error);
       }
@@ -136,6 +152,7 @@ const Composebar = () => {
           await updateDoc(doc(db, "chats", data.chatId), {
             messages: arrayUnion(msg),
           });
+          await updateChatPreview({ text: inputText, voice: true });
           setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
         })
         .catch((error) => {
@@ -153,18 +170,7 @@ const Composebar = () => {
       messages: arrayUnion(newMessage),
     });
 
-    // Update userChats as before...
-    let msg = { text: inputText };
-    if (attachment) msg.img = true;
-    await updateDoc(doc(db, "userChats", currentUser.uid), {
-      [data.chatId + ".lastMessage"]: msg,
-      [data.chatId + ".date"]: serverTimestamp(),
-    });
-    await updateDoc(doc(db, "userChats", data.user.uid), {
-      [data.chatId + ".lastMessage"]: msg,
-      [data.chatId + ".date"]: serverTimestamp(),
-      [data.chatId + ".chatDeleted"]: deleteField(),
-    });
+    await updateChatPreview({ text: inputText });
 
     resetFields();
   };

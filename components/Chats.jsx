@@ -124,13 +124,14 @@ const Chats = () => {
 
   const filteredChats = Object.entries(chats || {})
     .filter(([, chat]) => !chat?.hasOwnProperty("chatDeleted"))
-    .filter(
-      ([, chat]) =>
-        chat?.userInfo?.displayName
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        chat?.lastMessage?.text.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter(([, chat]) => {
+      // Defensive: a preview written without `text` would make the old
+      // `.text.toLowerCase()` throw and blank the whole sidebar.
+      const term = search.toLowerCase();
+      const name = (chat?.userInfo?.displayName || "").toLowerCase();
+      const preview = (chat?.lastMessage?.text || "").toLowerCase();
+      return name.includes(term) || preview.includes(term);
+    })
     .sort((a, b) => b[1].date - a[1].date);
 
   const readChat = async (chatId) => {
@@ -214,14 +215,12 @@ const Chats = () => {
                     <div className="text-xs text-c3">{formatDate(date)}</div>
                   </span>
                   <p className="text-sm text-c3 line-clamp-1">
-                    {/* {chat[1]?.lastMessage?.text ||
-                      (chat[1]?.lastMessage?.img + "image") ||
-                      "bell the cat! send a text"} */}
-
                     {chat[1]?.lastMessage?.text
                       ? chat[1]?.lastMessage?.text
                       : chat[1]?.lastMessage?.img
-                      ? "image"
+                      ? "📷 Photo"
+                      : chat[1]?.lastMessage?.voice
+                      ? "🎤 Voice message"
                       : "bell the cat! send a text"}
                   </p>
 
